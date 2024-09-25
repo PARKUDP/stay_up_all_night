@@ -43,6 +43,7 @@ jobs:
 
     - name: Run tests
       run: |
+        set -e
         docker-compose exec -T frontend npm test
         docker-compose exec -T backend pytest
 
