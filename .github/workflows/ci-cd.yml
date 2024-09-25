@@ -43,8 +43,8 @@ jobs:
 
     - name: Run tests
       run: |
-        docker-compose exec frontend npm test
-        docker-compose exec backend pytest
+        docker-compose exec -T frontend npm test
+        docker-compose exec -T backend pytest
 
     - name: Stop services
       run: docker-compose down
