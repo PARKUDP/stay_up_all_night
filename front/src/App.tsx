@@ -1,29 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Classes from './components/Classes';
+import Assignments from './components/Assignments';
 
-const App: React.FC = () => {
-  const [message, setMessage] = useState<string>('');
-
-  useEffect(() => {
-    fetch('http://localhost:5000/api/message', {
-      method: 'GET',
-      mode: 'cors'
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => setMessage(data.message))
-      .catch(error => console.error('Error fetching the message:', error));
-  }, []);
-
+function App() {
   return (
-    <div>
-      <h1>{message}</h1>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Classes />} />
+        <Route path="/assignments/:classId" element={<Assignments />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
-

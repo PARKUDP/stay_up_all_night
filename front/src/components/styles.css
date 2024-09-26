@@ -1,0 +1,83 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f1fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    position: relative;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px 10px;
+    width: 1400px;
+    height: 80px;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-bottom: auto;
+}
+
+.info-icon {
+    font-size: 40px;
+    color: #666;
+    margin-right: 10px;
+}
+
+.input-box {
+    flex-grow: 1;
+    padding: 5px 10px;
+    font-size: 16px;
+    border: none;
+    background-color: white;
+    color: #333;
+}
+
+
+.assignment-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.assignment-details {
+    font-size: 12px;
+    color: #666;
+    display: block;
+    margin-top: 5px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #666;
+    cursor: pointer;
+}
+.label {
+    position: absolute;
+    top: -15px;
+    left: 10px;
+    font-size: 12px;
+    color: white;
+    background-color: black;
+    padding: 3px 7px;
+    border-radius: 3px;
+}
+
+.assinglist {
+    background-color: white;
+}
