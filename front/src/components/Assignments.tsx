@@ -16,7 +16,7 @@ function Assignments() {
 
     // 課題とクラス名を取得する関数
     useEffect(() => {
-        axios.get(`http://localhost:5000/classes/${classId}/assignments`)
+        axios.get(`http://localhost:5001/classes/${classId}/assignments`)
             .then((response: AxiosResponse<{ class_name: string; assignments: Assignment[] }>) => {
                 setClassName(response.data.class_name); // クラス名を設定
                 setAssignments(response.data.assignments); // 課題を設定
@@ -28,7 +28,7 @@ function Assignments() {
     const addAssignment = () => {
         const title = prompt('課題名を入力してください。');
         if (title) {
-            axios.post('http://localhost:5000/assignments', { title, class_id: classId })
+            axios.post('http://localhost:5001/assignments', { title, class_id: classId })
                 .then((response: AxiosResponse<Assignment>) => {
                     setAssignments([...assignments, response.data]);
                 })
@@ -38,7 +38,7 @@ function Assignments() {
 
     // 課題を削除する関数
     const deleteAssignment = (assignmentId: number) => {
-        axios.delete(`http://localhost:5000/assignments/${assignmentId}`)
+        axios.delete(`http://localhost:5001/assignments/${assignmentId}`)
             .then(() => {
                 setAssignments(assignments.filter(a => a.id !== assignmentId));
             })

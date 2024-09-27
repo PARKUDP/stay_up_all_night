@@ -1,83 +1,46 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f1fa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.container {
-    position: relative;
-}
-
 .input-container {
     display: flex;
     align-items: center;
-    background-color: rgb(255, 255, 255);
+    justify-content: space-between; /* 子要素を両端に配置 */
+    background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 5px 10px;
-    width: 1400px;
+    width: 100%; /* 幅を100%に設定し、親要素に収まるように */
+    max-width: 1400px; /* 最大幅を設定 */
     height: 80px;
-    margin-right: auto;
-    margin-top: 20px;
-    margin-left: auto;
-    margin-bottom: auto;
-}
-
-.info-icon {
-    font-size: 40px;
-    color: #666;
-    margin-right: 10px;
-}
-
-.input-box {
-    flex-grow: 1;
-    padding: 5px 10px;
-    font-size: 16px;
-    border: none;
-    background-color: white;
-    color: #333;
-}
-
-
-.assignment-title {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.assignment-details {
-    font-size: 12px;
-    color: #666;
-    display: block;
-    margin-top: 5px;
+    box-sizing: border-box; /* パディングとボーダーを幅に含める */
 }
 
 .close-btn {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 24px; /* サイズを適切に設定 */
     color: #666;
     cursor: pointer;
-}
-.label {
-    position: absolute;
-    top: -15px;
-    left: 10px;
-    font-size: 12px;
-    color: white;
-    background-color: black;
-    padding: 3px 7px;
-    border-radius: 3px;
+    padding: 10px 20px; /* 右側のスペースを増やす */
+    margin: 0 5px 0 0; /* 右端に配置 */
+    align-self: center; /* 縦方向の中央揃え */
 }
 
-.assinglist {
-    background-color: white;
+/* レスポンシブ対応の調整 */
+@media (max-width: 768px) {
+    .input-container {
+        flex-direction: column; /* スマホ表示では縦に並べる */
+        height: auto; /* 高さを自動調整 */
+        padding: 10px; /* 内部のパディングを調整 */
+    }
+
+    .close-btn {
+        order: -1; /* 'X'を上に移動 */
+        width: 100%; /* 幅を親要素に合わせて調整 */
+        padding: 10px 10px 10px 0; /* 右側のパディングを調整 */
+        text-align: right; /* テキストを右寄せ */
+    }
 }
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f1fa;
+    margin-left: 30px; /* ページ全体を右に50px移動 */
+}
+

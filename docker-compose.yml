@@ -19,7 +19,7 @@ services:
     build:
       context: ./back
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - ./back:/usr/src/app  
     environment:
