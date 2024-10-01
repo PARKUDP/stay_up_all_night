@@ -14,7 +14,7 @@ function Classes() {
 
     // 授業リストを取得する関数
     const fetchClasses = () => {
-        axios.get('http://localhost:5001/classes')
+        axios.get('http://127.0.0.1:5000/classes')
             .then((response: AxiosResponse<Class[]>) => setClasses(response.data))
             .catch((error: Error) => console.error('Error:', error));
     };
@@ -32,7 +32,7 @@ function Classes() {
     const addClass = () => {
         const className = prompt('授業名を登録してください。');
         if (className) {
-            axios.post('http://localhost:5001/classes', { name: className })
+            axios.post('http://127.0.0.1:5000/classes', { name: className })
                 .then((response: AxiosResponse<Class>) => {
                     setClasses([...classes, response.data]);
                 })
@@ -42,7 +42,7 @@ function Classes() {
 
     // 授業を削除する関数
     const deleteClass = (classId: number) => {
-        axios.delete(`http://localhost:5001/classes/${classId}`)
+        axios.delete(`http://127.0.0.1:5000/classes/${classId}`)
             .then(() => {
                 setClasses(classes.filter(c => c.id !== classId));
             })
