@@ -14,35 +14,51 @@ function Assignments() {
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [className, setClassName] = useState<string>(''); // クラス名を保持
 
+    // ローカルストレージからトークンを取得
+    const token = localStorage.getItem('token');
+
     // 課題とクラス名を取得する関数
     useEffect(() => {
-        axios.get(`http://localhost:5001/classes/${classId}/assignments`)
-            .then((response: AxiosResponse<{ class_name: string; assignments: Assignment[] }>) => {
-                setClassName(response.data.class_name); // クラス名を設定
-                setAssignments(response.data.assignments); // 課題を設定
-            })
-            .catch((error: Error) => console.error('Error:', error));
-    }, [classId]);
+        axios.get(`http://localhost:5001/classes/${classId}/assignments`, {
+            headers: {
+                Authorization: `Bearer ${token}`  // トークンをヘッダーに追加
+            }
+        })
+        .then((response: AxiosResponse<{ class_name: string; assignments: Assignment[] }>) => {
+            console.log('API Response:', response.data);  // デバッグ用にレスポンスを確認
+            setClassName(response.data.class_name); // クラス名を設定
+            setAssignments(response.data.assignments); // 課題を設定
+        })
+        .catch((error: Error) => console.error('Error fetching assignments:', error));
+    }, [classId, token]);  // token も依存として追加
 
     // 課題を追加する関数
     const addAssignment = () => {
         const title = prompt('課題名を入力してください。');
         if (title) {
-            axios.post('http://localhost:5001/assignments', { title, class_id: classId })
-                .then((response: AxiosResponse<Assignment>) => {
-                    setAssignments([...assignments, response.data]);
-                })
-                .catch((error: Error) => console.error('Error adding assignment:', error));
+            axios.post('http://localhost:5001/assignments', { title, class_id: classId }, {
+                headers: {
+                    Authorization: `Bearer ${token}`  // トークンをヘッダーに追加
+                }
+            })
+            .then((response: AxiosResponse<Assignment>) => {
+                setAssignments([...assignments, response.data]);
+            })
+            .catch((error: Error) => console.error('Error adding assignment:', error));
         }
     };
 
     // 課題を削除する関数
     const deleteAssignment = (assignmentId: number) => {
-        axios.delete(`http://localhost:5001/assignments/${assignmentId}`)
-            .then(() => {
-                setAssignments(assignments.filter(a => a.id !== assignmentId));
-            })
-            .catch((error: Error) => console.error('Error deleting assignment:', error));
+        axios.delete(`http://localhost:5001/assignments/${assignmentId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`  // トークンをヘッダーに追加
+            }
+        })
+        .then(() => {
+            setAssignments(assignments.filter(a => a.id !== assignmentId));
+        })
+        .catch((error: Error) => console.error('Error deleting assignment:', error));
     };
 
     return (
