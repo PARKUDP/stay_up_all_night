@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './styles.css'; // スタイルをインポート
+import './styles.css'; 
 
 interface Class {
     id: number;
@@ -14,7 +14,10 @@ function Classes() {
 
     // 授業リストを取得する関数
     const fetchClasses = () => {
-        axios.get('http://localhost:5001/classes')
+        const token = localStorage.getItem('token'); 
+        axios.get('http://localhost:5001/classes', {
+            headers: { Authorization: `Bearer ${token}` }  
+        })
             .then((response: AxiosResponse<Class[]>) => setClasses(response.data))
             .catch((error: Error) => console.error('Error:', error));
     };
@@ -32,7 +35,10 @@ function Classes() {
     const addClass = () => {
         const className = prompt('授業名を登録してください。');
         if (className) {
-            axios.post('http://localhost:5001/classes', { name: className })
+            const token = localStorage.getItem('token'); 
+            axios.post('http://localhost:5001/classes', { name: className }, {
+                headers: { Authorization: `Bearer ${token}` }  
+            })
                 .then((response: AxiosResponse<Class>) => {
                     setClasses([...classes, response.data]);
                 })
@@ -42,7 +48,10 @@ function Classes() {
 
     // 授業を削除する関数
     const deleteClass = (classId: number) => {
-        axios.delete(`http://localhost:5001/classes/${classId}`)
+        const token = localStorage.getItem('token'); 
+        axios.delete(`http://localhost:5001/classes/${classId}`, {
+            headers: { Authorization: `Bearer ${token}` }  
+        })
             .then(() => {
                 setClasses(classes.filter(c => c.id !== classId));
             })

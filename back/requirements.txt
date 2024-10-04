@@ -1,3 +1,5 @@
 Flask
 flask-cors
 flask_sqlalchemy
+werkzeug
+flask-jwt-extended
