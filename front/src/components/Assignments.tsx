@@ -7,6 +7,7 @@ interface Assignment {
     id: number;
     title: string;
     completed: boolean;
+    term: boolean;
 }
 
 function Assignments() {
@@ -29,6 +30,14 @@ function Assignments() {
         const title = prompt('課題名を入力してください。');
         if (title) {
             axios.post('http://127.0.0.1:5000/assignments', { title, class_id: classId })
+                .then((response: AxiosResponse<Assignment>) => {
+                    setAssignments([...assignments, response.data]);
+                })
+                .catch((error: Error) => console.error('Error adding assignment:', error));
+        }
+        const term = prompt('課題の期限を入力してください。');
+        if (term) {
+            axios.post('http://127.0.0.1:5000/assignments', { term, class_id: classId })
                 .then((response: AxiosResponse<Assignment>) => {
                     setAssignments([...assignments, response.data]);
                 })
