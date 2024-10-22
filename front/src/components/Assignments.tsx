@@ -1,83 +1,120 @@
 import React, { useState, useEffect } from 'react';
 import axios, { AxiosResponse } from 'axios';
-import { useParams } from 'react-router-dom';
-import './styles.css'; 
+import { useParams, useNavigate } from 'react-router-dom';
+import './styles.css';
 
 interface Assignment {
     id: number;
     title: string;
     completed: boolean;
+    term: boolean;
+    deadline: string;
 }
 
-function Assignments() {
+const Assignments: React.FC = () => {
     const { classId } = useParams<{ classId: string }>();
     const [assignments, setAssignments] = useState<Assignment[]>([]);
-    const [className, setClassName] = useState<string>(''); // クラス名を保持
+    const [className, setClassName] = useState<string>('');
+    const [newTitle, setNewTitle] = useState<string>('');   
+    const [newDeadline, setNewDeadline] = useState<string>(''); 
+    const navigate = useNavigate();
 
-    // ローカルストレージからトークンを取得
-    const token = localStorage.getItem('token');
-
-    // 課題とクラス名を取得する関数
     useEffect(() => {
+        const token = localStorage.getItem('token'); // JWTトークンを取得
+
+        if (!token) {
+            console.error('Token is missing');
+            return;
+        }
+
         axios.get(`http://localhost:5001/classes/${classId}/assignments`, {
             headers: {
-                Authorization: `Bearer ${token}`  // トークンをヘッダーに追加
+                Authorization: `Bearer ${token}`
             }
         })
         .then((response: AxiosResponse<{ class_name: string; assignments: Assignment[] }>) => {
-            console.log('API Response:', response.data);  // デバッグ用にレスポンスを確認
-            setClassName(response.data.class_name); // クラス名を設定
-            setAssignments(response.data.assignments); // 課題を設定
+            setClassName(response.data.class_name); 
+            setAssignments(response.data.assignments); 
         })
-        .catch((error: Error) => console.error('Error fetching assignments:', error));
-    }, [classId, token]);  // token も依存として追加
+        .catch((error) => console.error('Error fetching assignments:', error));
+    }, [classId]);
 
-    // 課題を追加する関数
     const addAssignment = () => {
-        const title = prompt('課題名を入力してください。');
-        if (title) {
-            axios.post('http://localhost:5001/assignments', { title, class_id: classId }, {
-                headers: {
-                    Authorization: `Bearer ${token}`  // トークンをヘッダーに追加
-                }
-            })
-            .then((response: AxiosResponse<Assignment>) => {
-                setAssignments([...assignments, response.data]);
-            })
-            .catch((error: Error) => console.error('Error adding assignment:', error));
+        if (!newTitle || !newDeadline) {
+            console.error('タイトルと期限を入力してください。');
+            return;
         }
+
+        const token = localStorage.getItem('token'); // JWTトークンを取得
+
+        axios.post(`http://localhost:5001/assignments`, {
+            title: newTitle,
+            deadline: newDeadline,
+            class_id: classId,
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        .then((response: AxiosResponse<Assignment>) => {
+            setAssignments([...assignments, response.data]); 
+            setNewTitle('');  
+            setNewDeadline(''); 
+        })
+        .catch((error) => console.error('Error adding assignment:', error));
     };
 
-    // 課題を削除する関数
-    const deleteAssignment = (assignmentId: number) => {
-        axios.delete(`http://localhost:5001/assignments/${assignmentId}`, {
+    const deleteAssignment = (id: number) => {
+        const token = localStorage.getItem('token'); // JWTトークンを取得
+
+        axios.delete(`http://localhost:5001/assignments/${id}`, {
             headers: {
-                Authorization: `Bearer ${token}`  // トークンをヘッダーに追加
+                Authorization: `Bearer ${token}`
             }
         })
         .then(() => {
-            setAssignments(assignments.filter(a => a.id !== assignmentId));
+            setAssignments(assignments.filter(assignment => assignment.id !== id)); 
         })
-        .catch((error: Error) => console.error('Error deleting assignment:', error));
+        .catch((error) => console.error('Error deleting assignment:', error));
+    };
+
+    const goBack = () => {
+        navigate(-1);
     };
 
     return (
-        <div className="container">
-            <h3>{className}の課題リスト</h3>
-            {assignments.length > 0 ? (
-                assignments.map(a => (
-                    <div className="input-container" key={a.id}>
-                        <div className="input-box" style={{ cursor: 'pointer' }}>
-                            {a.title}
-                        </div>
-                        <button className="close-btn" onClick={() => deleteAssignment(a.id)}>✕</button>
-                    </div>
-                ))
-            ) : (
-                <p>登録されている課題がありません。課題を登録してください。</p>
-            )}
-            <button onClick={addAssignment}>課題登録</button> 
-            <p><button onClick={() => window.history.back()}>授業リストページに戻る</button></p>
+        <div>
+            <h1>{className} - 課題一覧</h1>
+
+            <div>
+                <h2>新しい課題を追加</h2>
+                <input 
+                    type="text" 
+                    placeholder="課題のタイトル" 
+                    value={newTitle} 
+                    onChange={(e) => setNewTitle(e.target.value)} 
+                />
+                <input 
+                    type="date" 
+                    value={newDeadline} 
+                    onChange={(e) => setNewDeadline(e.target.value)} 
+                />
+                <button onClick={addAssignment}>課題を追加</button>
+            </div>
+
+            <ul>
+                {assignments.map((assignment) => (
+                    <li key={assignment.id}>
+                        <h2>{assignment.title}</h2>
+                        <p>完了済み: {assignment.completed ? 'はい' : 'いいえ'}</p>
+                        <p>学期課題: {assignment.term ? 'はい' : 'いいえ'}</p>
+                        <p>期限: {assignment.deadline}</p>
+                        <button onClick={() => deleteAssignment(assignment.id)}>削除</button>
+                    </li>
+                ))}
+            </ul>
+
+            <button onClick={goBack}>戻る</button>
         </div>
     );
 }

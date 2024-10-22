@@ -2,37 +2,27 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Classes from './components/Classes';
 import Assignments from './components/Assignments';
-import axios from 'axios';
 import LoginForm from './components/LoginForm';
 import RegisterForm from './components/RegisterForm';
 import LogoutButton from './components/LogoutButton'; 
+import axios from 'axios';
 
 function App() {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);  
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleLogin = async (username: string, password: string) => {
     try {
-      console.log('Logging in with:', username, password);  
-      const response = await axios.post('http://localhost:5001/login', {  
-        username,
-        password,
-      });
-
+      const response = await axios.post('http://localhost:5001/login', { username, password });
       const token = response.data.token;
       localStorage.setItem('token', token);
-      console.log('Login successful');
-
       window.location.href = '/';
     } catch (error) {
-      console.error('Login failed:', error);  
-      setErrorMessage('ログインに失敗しました。ユーザー名またはパスワードが間違っています。');  
+      setErrorMessage('ログインに失敗しました。ユーザー名またはパスワードが間違っています。');
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    console.log('Logged out successfully');
-    
     window.location.href = '/login';
   };
 
@@ -44,17 +34,12 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route 
-          path="/login" 
-          element={<LoginForm onSubmit={handleLogin} errorMessage={errorMessage} />} 
-        />
-
+        <Route path="/login" element={<LoginForm onSubmit={handleLogin} errorMessage={errorMessage} />} />
         <Route path="/register" element={<RegisterForm />} />
-
         <Route path="/" element={
           <PrivateRoute>
             <div>
-              <LogoutButton onLogout={handleLogout} />  
+              <LogoutButton onLogout={handleLogout} />
               <Classes />
             </div>
           </PrivateRoute>
@@ -62,12 +47,11 @@ function App() {
         <Route path="/assignments/:classId" element={
           <PrivateRoute>
             <div>
-              <LogoutButton onLogout={handleLogout} />   
+              <LogoutButton onLogout={handleLogout} />
               <Assignments />
             </div>
           </PrivateRoute>
         } />
-
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>

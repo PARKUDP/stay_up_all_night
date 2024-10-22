@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import LogoImage from '../img/logo.png'
+import './login.css';
 
 interface LoginFormProps {
   onSubmit: (username: string, password: string) => void;
@@ -24,7 +26,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, errorMessage }) => {
   };
 
   return (
-    <div>
+    <div className="login-container">
+      <img src={LogoImage} alt="Logo" />
       <h2>ログイン</h2>
       <input
         type="text"

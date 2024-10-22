@@ -3,3 +3,4 @@ flask-cors
 flask_sqlalchemy
 werkzeug
 flask-jwt-extended
+Flask-Migrate

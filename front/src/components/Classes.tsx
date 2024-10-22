@@ -12,50 +12,46 @@ function Classes() {
     const [classes, setClasses] = useState<Class[]>([]);
     const navigate = useNavigate();
 
-    // 授業リストを取得する関数
     const fetchClasses = () => {
         const token = localStorage.getItem('token'); 
         axios.get('http://localhost:5001/classes', {
-            headers: { Authorization: `Bearer ${token}` }  
+            headers: { Authorization: `Bearer ${token}` }
         })
-            .then((response: AxiosResponse<Class[]>) => setClasses(response.data))
-            .catch((error: Error) => console.error('Error:', error));
+        .then((response: AxiosResponse<Class[]>) => setClasses(response.data))
+        .catch((error: Error) => console.error('Error:', error));
     };
 
     useEffect(() => {
         fetchClasses();
     }, []);
 
-    // 授業をクリックして課題ページに遷移する
     const handleClassClick = (classId: number) => {
         navigate(`/assignments/${classId}`);
     };
 
-    // 授業を追加する関数
     const addClass = () => {
         const className = prompt('授業名を登録してください。');
         if (className) {
             const token = localStorage.getItem('token'); 
             axios.post('http://localhost:5001/classes', { name: className }, {
-                headers: { Authorization: `Bearer ${token}` }  
+                headers: { Authorization: `Bearer ${token}` }
             })
-                .then((response: AxiosResponse<Class>) => {
-                    setClasses([...classes, response.data]);
-                })
-                .catch((error: Error) => console.error('Error adding class:', error));
+            .then((response: AxiosResponse<Class>) => {
+                setClasses([...classes, response.data]);
+            })
+            .catch((error: Error) => console.error('Error adding class:', error));
         }
     };
 
-    // 授業を削除する関数
     const deleteClass = (classId: number) => {
-        const token = localStorage.getItem('token'); 
+        const token = localStorage.getItem('token');
         axios.delete(`http://localhost:5001/classes/${classId}`, {
-            headers: { Authorization: `Bearer ${token}` }  
+            headers: { Authorization: `Bearer ${token}` }
         })
-            .then(() => {
-                setClasses(classes.filter(c => c.id !== classId));
-            })
-            .catch((error: Error) => console.error('Error deleting class:', error));
+        .then(() => {
+            setClasses(classes.filter(c => c.id !== classId));
+        })
+        .catch((error: Error) => console.error('Error deleting class:', error));
     };
 
     return (
@@ -72,7 +68,7 @@ function Classes() {
                     </div>
                 ))
             ) : (
-                <p>登録されている授業がありません。授業を登録してください。 </p>
+                <p>登録されている授業がありません。授業を登録してください。</p>
             )}
             <button onClick={addClass}>授業登録</button> 
         </div>

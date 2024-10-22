@@ -1,58 +1,23 @@
-.login {
+.login-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 50px;
-}
+    justify-content: center;
+    height: 100vh;
+  }
   
-.logo {
-    margin-bottom: 50px;
-}
+  img {
+    width: 150px; 
+    margin-bottom: 20px; 
+  }
   
-.form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    padding: 40px;
-}
-  
-.form label {
-    display: block;
+  input {
     margin-bottom: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #5f6368;
-}
+    padding: 10px;
+    width: 200px;
+  }
   
-.form input[type="email"],
-.form input[type="password"] {
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    border: none;
-    border-bottom: 1px solid #dadce0;
-    font-size: 16px;
-    color: #202124;
-    background-color: transparent;
-}
-  
-.form button[type="submit"] {
-    background-color: #1a73e8;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 500;
-    border: none;
-    border-radius: 4px;
-    padding: 12px 24px;
-    margin-top: 24px;
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
-}
-  
-.form button[type="submit"]:hover {
-    background-color: #0d47a1;
-}
+  button {
+    padding: 10px 20px;
+  }
   
