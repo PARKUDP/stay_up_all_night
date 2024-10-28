@@ -19,3 +19,8 @@ class Assignment(db.Model):
     deadline = db.Column(db.Date, nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
     class_obj = db.relationship('Class', backref=db.backref('assignments', cascade="all, delete-orphan"))
+
+class AssignmentCompletion(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignment.id'), nullable=False)

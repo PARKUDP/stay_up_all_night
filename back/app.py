@@ -1,10 +1,10 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 from datetime import datetime
-from models import db, User, Class, Assignment
+from models import db, User, Class, Assignment, AssignmentCompletion
 from flask_migrate import Migrate
 
 
@@ -13,7 +13,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'c5eb7bbe26e1426893e44c80985e049a60e322a00fd075f351917a87f40134ce'
+app.config['JWT_SECRET_KEY'] = '7ee874939dd8de86cb56cd7e281893e11b7fe032800ee1a6b62080fbc0d243a5'
 
 db.init_app(app)
 jwt = JWTManager(app)
@@ -118,6 +118,30 @@ def delete_assignment(assignment_id):
     db.session.delete(assignment_to_delete)
     db.session.commit()
     return jsonify({'message': 'Assignment deleted'}), 200
+
+@app.route('/assignments/<int:assignment_id>/complete', methods=['POST'])
+@jwt_required()
+def complete_assignment(assignment_id):
+    user_id = get_jwt_identity()
+    completion = AssignmentCompletion.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
+
+    if completion:
+        db.session.delete(completion)
+        message = '課題の完了を取り消しました。'
+    else:
+        new_completion = AssignmentCompletion(user_id=user_id, assignment_id=assignment_id)
+        db.session.add(new_completion)
+        message = '課題を完了しました。'
+
+    db.session.commit()
+    return jsonify({'message': message})
+
+@app.route('/assignments/<int:assignment_id>/completion_count', methods=['GET'])
+@jwt_required()
+def get_completion_count(assignment_id):
+    count = AssignmentCompletion.query.filter_by(assignment_id=assignment_id).count()
+    return jsonify({'completion_count': count})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
