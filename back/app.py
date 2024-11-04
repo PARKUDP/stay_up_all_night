@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 from datetime import datetime
-from models import db, User, Class, Assignment, AssignmentCompletion
+from models import db, User, Class, Assignment, AssignmentCompletion, AssignmentStatus
 from flask_migrate import Migrate
 
 
@@ -13,7 +13,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = '7ee874939dd8de86cb56cd7e281893e11b7fe032800ee1a6b62080fbc0d243a5'
+app.config['JWT_SECRET_KEY'] = 'dca79b97372436bae63b1382945d3b28e82e0bd7e79dd27710353f8bdbf689e2'
 
 db.init_app(app)
 jwt = JWTManager(app)
@@ -141,6 +141,49 @@ def complete_assignment(assignment_id):
 def get_completion_count(assignment_id):
     count = AssignmentCompletion.query.filter_by(assignment_id=assignment_id).count()
     return jsonify({'completion_count': count})
+
+
+@app.route('/assignments/<int:assignment_id>/status', methods=['GET'])
+@jwt_required()
+def get_assignment_status(assignment_id):
+    user_id = get_jwt_identity()
+    status_entry = AssignmentStatus.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
+
+    if status_entry:
+        status = status_entry.status
+    else:
+        status = '未着手'  
+
+    return jsonify({'status': status}), 200
+
+@app.route('/assignments/<int:assignment_id>/status', methods=['PUT'])
+@jwt_required()
+def update_assignment_status(assignment_id):
+    user_id = get_jwt_identity()
+    new_status = request.json.get('status')
+
+    if new_status not in ['未着手', '進行中', '完了']:
+        return jsonify({'error': '無効なステータスです。'}), 400
+
+    status_entry = AssignmentStatus.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
+    if status_entry:
+        status_entry.status = new_status
+    else:
+        status_entry = AssignmentStatus(user_id=user_id, assignment_id=assignment_id, status=new_status)
+        db.session.add(status_entry)
+
+    if new_status == '完了':
+        completion = AssignmentCompletion.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
+        if not completion:
+            new_completion = AssignmentCompletion(user_id=user_id, assignment_id=assignment_id)
+            db.session.add(new_completion)
+    else:
+        completion = AssignmentCompletion.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
+        if completion:
+            db.session.delete(completion)
+
+    db.session.commit()
+    return jsonify({'message': 'ステータスが更新されました。', 'status': new_status}), 200
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import './styles.css';
+import './Assignments.css';
 
 interface Assignment {
     id: number;
@@ -10,6 +10,7 @@ interface Assignment {
     term: boolean;
     deadline: string;
     completionCount: number;
+    status: '未着手' | '進行中' | '完了';  
 }
 
 const Assignments: React.FC = () => {
@@ -20,33 +21,76 @@ const Assignments: React.FC = () => {
     const [newDeadline, setNewDeadline] = useState<string>(''); 
     const navigate = useNavigate();
 
+    // 課題一覧と完了人数を取得
     const fetchAssignments = useCallback(() => {
         const token = localStorage.getItem('token');
         if (!token) {
             console.error('Token is missing');
             return;
         }
-
+    
         axios.get(`http://localhost:5001/classes/${classId}/assignments`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         })
-        .then((response: AxiosResponse<{ class_name: string; assignments: Assignment[] }>) => {
+        .then(async (response: AxiosResponse<{ class_name: string; assignments: Assignment[] }>) => {
             setClassName(response.data.class_name); 
-            const assignmentsWithCount = response.data.assignments.map(assignment => ({
-                ...assignment,
-                completionCount: 0 // 初期値
-            }));
+            const assignmentsWithCount = await Promise.all(
+                response.data.assignments.map(async (assignment) => {
+                    const statusResponse = await axios.get(`http://localhost:5001/assignments/${assignment.id}/status`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const completionResponse = await axios.get(`http://localhost:5001/assignments/${assignment.id}/completion_count`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    return { 
+                        ...assignment, 
+                        completionCount: completionResponse.data.completion_count, 
+                        status: statusResponse.data.status 
+                    };
+                })
+            );
             setAssignments(assignmentsWithCount); 
-            response.data.assignments.forEach((assignment) => fetchCompletionCount(assignment.id));
         })
         .catch((error) => console.error('Error fetching assignments:', error));
     }, [classId]);
-
+    
     useEffect(() => {
         fetchAssignments();
     }, [fetchAssignments]);
+    
+    const updateStatus = (assignmentId: number, newStatus: '未着手' | '進行中' | '完了') => {
+        const token = localStorage.getItem('token');
+        const assignment = assignments.find(a => a.id === assignmentId);
+
+        if (!assignment) return;
+
+        // ステータス変更前の状態を取得
+        const prevStatus = assignment.status;
+
+        axios.put(`http://localhost:5001/assignments/${assignmentId}/status`, 
+            { status: newStatus }, 
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        )
+        .then(() => {
+            setAssignments((prevAssignments) =>
+                prevAssignments.map((assignment) =>
+                    assignment.id === assignmentId ? { ...assignment, status: newStatus } : assignment
+                )
+            );
+
+            // 完了人数の更新
+            if (newStatus === '完了' && prevStatus !== '完了') {
+                incrementCompletionCount(assignmentId);
+            } else if (prevStatus === '完了' && newStatus !== '完了') {
+                decrementCompletionCount(assignmentId);
+            }
+        })
+        .catch((error) => console.error('Error updating status:', error));
+    };
 
     const addAssignment = () => {
         if (!newTitle || !newDeadline) {
@@ -65,47 +109,39 @@ const Assignments: React.FC = () => {
             }
         })
         .then((response: AxiosResponse<Assignment>) => {
-            setAssignments([...assignments, { ...response.data, completionCount: 0 }]); 
+            setAssignments([...assignments, { ...response.data, completionCount: 0, status: '未着手' }]); 
             setNewTitle('');
             setNewDeadline(''); 
         })
         .catch((error) => console.error('Error adding assignment:', error));
     };
 
-    const toggleCompletion = (assignmentId: number) => {
-        const token = localStorage.getItem('token');
-        axios.post(`http://localhost:5001/assignments/${assignmentId}/complete`, {}, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-        .then(() => {
-            fetchAssignments();
-            fetchCompletionCount(assignmentId); 
-        })
-        .catch((error) => console.error('Error updating completion status:', error));
+    const incrementCompletionCount = (assignmentId: number) => {
+        setAssignments(prevAssignments =>
+            prevAssignments.map(assignment =>
+                assignment.id === assignmentId
+                    ? { ...assignment, completionCount: assignment.completionCount + 1 }
+                    : assignment
+            )
+        );
     };
 
-    const fetchCompletionCount = (assignmentId: number) => {
-        const token = localStorage.getItem('token');
-        axios.get(`http://localhost:5001/assignments/${assignmentId}/completion_count`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        })
-        .then((response: AxiosResponse<{ completion_count: number }>) => {
-            setAssignments(prevAssignments => 
-                prevAssignments.map(assignment =>
-                    assignment.id === assignmentId
-                        ? { ...assignment, completionCount: response.data.completion_count }
-                        : assignment
-                )
-            );
-        })
-        .catch((error) => console.error('Error fetching completion count:', error));
+    const decrementCompletionCount = (assignmentId: number) => {
+        setAssignments(prevAssignments =>
+            prevAssignments.map(assignment =>
+                assignment.id === assignmentId
+                    ? { ...assignment, completionCount: Math.max(assignment.completionCount - 1, 0) }
+                    : assignment
+            )
+        );
     };
 
     const deleteAssignment = (id: number) => {
+        const confirmDelete = window.confirm('本当にこの課題を削除しますか？');
+        if (!confirmDelete) {
+            return; 
+        }
+    
         const token = localStorage.getItem('token');
         axios.delete(`http://localhost:5001/assignments/${id}`, {
             headers: {
@@ -144,16 +180,26 @@ const Assignments: React.FC = () => {
 
             <ul>
                 {assignments.map((assignment) => (
-                    <li key={assignment.id}>
-                        <h2>{assignment.title}</h2>
+                    <li className="assignment-card" key={assignment.id}>
+                        <h2>課題 {assignment.title}</h2>
                         <p>完了済み: {assignment.completed ? 'はい' : 'いいえ'}</p>
                         <p>学期課題: {assignment.term ? 'はい' : 'いいえ'}</p>
                         <p>期限: {assignment.deadline}</p>
                         <p>完了人数: {assignment.completionCount}人</p>
-                        <button onClick={() => toggleCompletion(assignment.id)}>
-                            {assignment.completed ? '完了を取り消す' : '完了する'}
-                        </button>
-                        <button onClick={() => deleteAssignment(assignment.id)}>削除</button>
+                        <div className="status-container">
+                            <select
+                                value={assignment.status}
+                                onChange={(e) => updateStatus(assignment.id, e.target.value as '未着手' | '進行中' | '完了')}
+                                className={`status-${assignment.status}`}
+                            >
+                                <option value="未着手">未着手</option>
+                                <option value="進行中">進行中</option>
+                                <option value="完了">完了</option>
+                            </select>
+                        </div>
+                        <div className="assignment-buttons">
+                            <button onClick={() => deleteAssignment(assignment.id)}>削除</button>
+                        </div>
                     </li>
                 ))}
             </ul>
