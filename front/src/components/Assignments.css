@@ -1,0 +1,93 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f1fa;
+    margin-left: 30px;
+}
+
+.assignment-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.assignment-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.assignment-card h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.assignment-card p {
+    font-size: 14px;
+    margin: 4px 0;
+    color: #555;
+}
+
+.status-container {
+    position: absolute;
+    top: 20px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-bottom: 10px;  
+}
+
+.assignment-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    position: absolute;
+    right: 10px;
+    top: 90px;  
+    margin-top: 60px; 
+}
+
+
+.status-container select {
+    font-size: 18px;       
+    padding: 10px 14px;     
+    border-radius: 4px;      
+    border: 1px solid #ccc;  
+    background-color: #f0f0f0; 
+    cursor: pointer;
+    width: 100%;             
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+button.add-assignment {
+    margin-top: 10px;
+    background-color: #28a745;
+}
+
+button.add-assignment:hover {
+    background-color: #218838;
+}
