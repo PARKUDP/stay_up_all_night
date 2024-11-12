@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Assignments.css';
+// import LogoImage from '../img/logo.png';
 
 interface Assignment {
     id: number;
@@ -20,7 +21,23 @@ const Assignments: React.FC = () => {
     const [newTitle, setNewTitle] = useState<string>('');   
     const [newDeadline, setNewDeadline] = useState<string>(''); 
     const navigate = useNavigate();
+    const [filter, setFilter] = useState<string>('すべて');
 
+    const filteredAssignments = assignments.filter((assignment) => {
+        const today = new Date();
+        const deadline = new Date(assignment.deadline);
+        const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+        if (filter === '1日以内') {
+            return diffDays <= 1;
+        } else if (filter === '3日以内') {
+            return diffDays <= 3;
+        } else if (filter === '7日以内') {
+            return diffDays <= 7;
+        }
+        return true; // "すべて"の場合
+    });
+    
     // 課題一覧と完了人数を取得
     const fetchAssignments = useCallback(() => {
         const token = localStorage.getItem('token');
@@ -161,7 +178,8 @@ const Assignments: React.FC = () => {
     return (
         <div>
             <h1>{className} - 課題一覧</h1>
-
+    
+            {/* 課題追加フォーム */}
             <div>
                 <h2>新しい課題を追加</h2>
                 <input 
@@ -177,36 +195,62 @@ const Assignments: React.FC = () => {
                 />
                 <button onClick={addAssignment}>課題を追加</button>
             </div>
-
-            <ul>
-                {assignments.map((assignment) => (
-                    <li className="assignment-card" key={assignment.id}>
-                        <h2>課題 {assignment.title}</h2>
-                        <p>完了済み: {assignment.completed ? 'はい' : 'いいえ'}</p>
-                        <p>学期課題: {assignment.term ? 'はい' : 'いいえ'}</p>
-                        <p>期限: {assignment.deadline}</p>
-                        <p>完了人数: {assignment.completionCount}人</p>
-                        <div className="status-container">
-                            <select
-                                value={assignment.status}
-                                onChange={(e) => updateStatus(assignment.id, e.target.value as '未着手' | '進行中' | '完了')}
-                                className={`status-${assignment.status}`}
-                            >
-                                <option value="未着手">未着手</option>
-                                <option value="進行中">進行中</option>
-                                <option value="完了">完了</option>
-                            </select>
-                        </div>
-                        <div className="assignment-buttons">
-                            <button onClick={() => deleteAssignment(assignment.id)}>削除</button>
-                        </div>
-                    </li>
-                ))}
-            </ul>
-
-            <button onClick={goBack}>戻る</button>
+            <div>
+                <ul>
+                    {assignments.map((assignment) => (
+                        <li className="assignment-card" key={assignment.id}>
+                            <h2>課題 {assignment.title}</h2>
+                            <p>完了済み: {assignment.completed ? 'はい' : 'いいえ'}</p>
+                            <p>学期課題: {assignment.term ? 'はい' : 'いいえ'}</p>
+                            <p>期限: {assignment.deadline}</p>
+                            <p>完了人数: {assignment.completionCount}人</p>
+                            <div className="status-container">
+                                <select
+                                    value={assignment.status}
+                                    onChange={(e) => updateStatus(assignment.id, e.target.value as '未着手' | '進行中' | '完了')}
+                                    className={`status-${assignment.status}`}
+                                >
+                                    <option value="未着手">未着手</option>
+                                    <option value="進行中">進行中</option>
+                                    <option value="完了">完了</option>
+                                </select>
+                            </div>
+                            <div className="assignment-buttons">
+                                <button onClick={() => deleteAssignment(assignment.id)}>削除</button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                <h2>期限別課題リスト</h2>
+                <div>
+                    <label htmlFor="filter">期限でフィルタリング:</label>
+                    <select
+                        id="filter"
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                    >
+                        <option value="すべて">すべて</option>
+                        <option value="1日以内">1日以内</option>
+                        <option value="3日以内">3日以内</option>
+                        <option value="7日以内">7日以内</option>
+                    </select>
+                </div>
+                <ul>
+                    {filteredAssignments.map((assignment) => (
+                        <li className="filtered-assignment-card" key={assignment.id}>
+                            <h2>{assignment.title}</h2>
+                            <p>期限: {assignment.deadline}</p>
+                            <p>ステータス: {assignment.status}</p>
+                            <p>完了人数: {assignment.completionCount}人</p>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <button onClick={goBack} style={{ marginTop: '20px', padding: '10px 20px' }}>戻る</button>
         </div>
-    );
+    );    
 }
 
 export default Assignments;

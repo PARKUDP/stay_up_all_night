@@ -13,7 +13,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'dca79b97372436bae63b1382945d3b28e82e0bd7e79dd27710353f8bdbf689e2'
+app.config['JWT_SECRET_KEY'] = '59da1de4da31437bb9cfab0dbf8293eecf279acb20c2fff0907bb4352609051b'
 
 db.init_app(app)
 jwt = JWTManager(app)
@@ -184,6 +184,23 @@ def update_assignment_status(assignment_id):
 
     db.session.commit()
     return jsonify({'message': 'ステータスが更新されました。', 'status': new_status}), 200
+
+@app.route('/classes/<int:class_id>/assignments/filter', methods=['GET'])
+@jwt_required()
+def filter_assignments(class_id):
+    filter_days = int(request.args.get('days', 0))
+    today = datetime.utcnow().date()
+    assignments = Assignment.query.filter_by(class_id=class_id).all()
+
+    if filter_days > 0:
+        filtered = [a for a in assignments if (a.deadline - today).days <= filter_days]
+    else:
+        filtered = assignments
+
+    return jsonify([
+        {'id': a.id, 'title': a.title, 'deadline': a.deadline.strftime('%Y-%m-%d')}
+        for a in filtered
+    ])
 
 
 if __name__ == '__main__':
