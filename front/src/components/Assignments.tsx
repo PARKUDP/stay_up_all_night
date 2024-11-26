@@ -23,6 +23,9 @@ const Assignments: React.FC = () => {
     const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
     const [loadingStatus, setLoadingStatus] = useState<number | null>(null);
 
+    // ユーザーIDを取得
+    const currentUserId = localStorage.getItem('user_id');
+
     // メッセージ表示タイマー
     useEffect(() => {
         if (message) {
@@ -75,11 +78,16 @@ const Assignments: React.FC = () => {
     };
 
     // 課題のステータスを更新
-    const updateStatus = (assignmentId: number, newStatus: string) => {
+    const updateStatus = (assignmentId: number, userId: string | null, newStatus: string)=> {
+        if (!userId) {
+            setMessage({ text: 'ユーザー情報が見つかりません。ログインし直してください。', type: 'error' });
+            return;
+        }
+
         setLoadingStatus(assignmentId);
 
         axios
-            .put(`http://localhost:5001/assignments/${assignmentId}/status`, { status: newStatus })
+            .put(`http://localhost:5001/assignments/${assignmentId}/status`, { user_id: currentUserId, status: newStatus })
             .then((response) => {
                 setAssignments((prev) =>
                     prev.map((assignment) =>
@@ -118,14 +126,17 @@ const Assignments: React.FC = () => {
         const today = new Date();
         const deadline = new Date(assignment.deadline);
         const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-        if (filter === '1日以内') {
-            return diffDays <= 1;
-        } else if (filter === '3日以内') {
-            return diffDays <= 3;
-        } else if (filter === '7日以内') {
-            return diffDays <= 7;
-        }
+    
+        // ステータスでフィルタリング
+        if (filter === '未着手') return assignment.status === '未着手';
+        if (filter === '進行中') return assignment.status === '進行中';
+        if (filter === '完了') return assignment.status === '完了';
+    
+        // 期限でフィルタリング
+        if (filter === '1日以内') return diffDays <= 1;
+        if (filter === '3日以内') return diffDays <= 3;
+        if (filter === '7日以内') return diffDays <= 7;
+    
         return true; // "すべて"の場合
     });
 
@@ -136,7 +147,7 @@ const Assignments: React.FC = () => {
 
     return (
         <div>
-            <h1>{className} - 課題</h1>
+            <h1>{className} - 課題一覧</h1>
             {message && <p className={`message ${message.type}`}>{message.text}</p>}
 
             {/* 課題追加フォーム */}
@@ -166,7 +177,7 @@ const Assignments: React.FC = () => {
                             <p>ステータス:</p>
                             <select
                                 value={assignment.status}
-                                onChange={(e) => updateStatus(assignment.id, e.target.value)}
+                                onChange={(e) => updateStatus(assignment.id, currentUserId, e.target.value)}
                                 disabled={loadingStatus === assignment.id}
                             >
                                 <option value="未着手">未着手</option>

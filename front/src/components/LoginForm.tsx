@@ -14,6 +14,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
   const navigate = useNavigate();
+  
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -25,6 +26,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       await axios.post('http://localhost:5001/login', { username, password });
       setMessage('ログイン成功！');
       setIsError(false);
+
+      const response = await axios.post('http://localhost:5001/login', { username, password });
+
+      // サーバーから返された `user_id` を保存
+      localStorage.setItem('user_id', response.data.user_id);
+
       onLoginSuccess(); // ログイン成功時の処理
       navigate('/'); // ダッシュボード画面に移動
     } catch (error) {
