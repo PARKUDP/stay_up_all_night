@@ -58,7 +58,7 @@ const Assignments: React.FC = () => {
             setMessage({ text: 'タイトルと期限を入力してください。', type: 'error' });
             return;
         }
-
+    
         axios
             .post('http://localhost:5001/assignments', {
                 title: newTitle.trim(),
@@ -73,9 +73,14 @@ const Assignments: React.FC = () => {
             })
             .catch((error) => {
                 console.error('Error adding assignment:', error.response || error.message);
-                setMessage({ text: '課題の追加に失敗しました。', type: 'error' });
+                if (error.response && error.response.data.error) {
+                    setMessage({ text: error.response.data.error, type: 'error' });
+                } else {
+                    setMessage({ text: '課題の追加に失敗しました。', type: 'error' });
+                }
             });
     };
+    
 
     // 課題のステータスを更新
     const updateStatus = (assignmentId: number, userId: string | null, newStatus: string)=> {

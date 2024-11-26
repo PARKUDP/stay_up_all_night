@@ -69,52 +69,53 @@ def login():
 
 @app.route('/assignments', methods=['POST'])
 def add_assignment():
+    title = request.json.get('title')
+    deadline_str = request.json.get('deadline')
+    class_id = request.json.get('class_id')
+
+    if not title or not deadline_str or not class_id:
+        return jsonify({'error': 'タイトル、期限、クラスIDを入力してください。'}), 400
+
+    # クラスIDが存在するか確認
+    class_instance = Class.query.get(class_id)
+    if not class_instance:
+        return jsonify({'error': '指定されたクラスが存在しません。'}), 404
+
+    # 同じクラス内で同じタイトルの課題が存在するかを確認
+    existing_assignment = Assignment.query.filter_by(title=title, class_id=class_id).first()
+    if existing_assignment:
+        return jsonify({'error': '同じ名前の課題がすでに存在します。'}), 400
+
+    # 日付形式のバリデーション
     try:
-        title = request.json.get('title')
-        deadline_str = request.json.get('deadline')
-        class_id = request.json.get('class_id')
+        deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': '期限の日付形式が正しくありません。'}), 400
 
-        if not title or not deadline_str or not class_id:
-            return jsonify({'error': 'タイトル、期限、クラスIDを入力してください。'}), 400
+    # 新しい課題を作成
+    new_assignment = Assignment(title=title, class_id=class_id, deadline=deadline)
+    db.session.add(new_assignment)
+    db.session.commit()
 
-        # クラスIDが存在するか確認
-        class_instance = Class.query.get(class_id)
-        if not class_instance:
-            return jsonify({'error': '指定されたクラスが存在しません。'}), 404
+    # 初期状態のステータスを全ユーザー分作成
+    users = User.query.all()
+    for user in users:
+        new_status = AssignmentStatus(
+            user_id=user.id,
+            assignment_id=new_assignment.id,
+            status='未着手'
+        )
+        db.session.add(new_status)
 
-        # 日付形式のバリデーション
-        try:
-            deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
-        except ValueError:
-            return jsonify({'error': '期限の日付形式が正しくありません (YYYY-MM-DD)。'}), 400
+    db.session.commit()
 
-        # 新しい課題を作成
-        new_assignment = Assignment(title=title, class_id=class_id, deadline=deadline)
-        db.session.add(new_assignment)
-        db.session.commit()
-
-        # 初期状態で `AssignmentStatus` を作成
-        users = User.query.all()  # クラス内のユーザー全員を取得
-        for user in users:
-            new_status = AssignmentStatus(
-                user_id=user.id,
-                assignment_id=new_assignment.id,
-                status='未着手'
-            )
-            db.session.add(new_status)
-
-        db.session.commit()
-
-        return jsonify({
-            'id': new_assignment.id,
-            'title': new_assignment.title,
-            'deadline': new_assignment.deadline.strftime('%Y-%m-%d'),
-            'completionCount': 0,  # 初回登録時は 0 人
-            'status': '未着手'
-        }), 201
-    except Exception as e:
-        print(f"Error adding assignment: {e}")
-        return jsonify({'error': 'Internal Server Error'}), 500
+    return jsonify({
+        'id': new_assignment.id,
+        'title': new_assignment.title,
+        'deadline': new_assignment.deadline.strftime('%Y-%m-%d'),
+        'completionCount': 0,
+        'status': '未着手'
+    }), 201
 
 
 @app.route('/classes/<int:class_id>/assignments', methods=['GET'])
