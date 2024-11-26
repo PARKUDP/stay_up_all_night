@@ -1,28 +1,46 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import LogoImage from '../img/logo.png'
-import './login.css';
+import axios from 'axios';
+import LogoImage from '../img/logo.png';
+import './LoginForm.css';
 
 interface LoginFormProps {
-  onSubmit: (username: string, password: string) => void;
-  errorMessage: string | null;  
+  onLoginSuccess: () => void; // ログイン成功時のコールバック関数
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, errorMessage }) => {
+const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
   const navigate = useNavigate();
 
-  const handleLoginClick = () => {
-    if (username && password) {
-      onSubmit(username, password);
-    } else {
-      console.error('Usernameとpasswordを入力してください。');
+  const handleLogin = async () => {
+    if (!username || !password) {
+      setMessage('UsernameとPasswordを入力してください。');
+      setIsError(true);
+      return;
+    }
+    try {
+      await axios.post('http://localhost:5001/login', { username, password });
+      setMessage('ログイン成功！');
+      setIsError(false);
+      onLoginSuccess(); // ログイン成功時の処理
+      navigate('/'); // ダッシュボード画面に移動
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        // サーバーエラー時の処理
+        setMessage(`エラー: ${error.response.data.error || 'ログインに失敗しました。'}`);
+      } else {
+        // ネットワークエラー時の処理
+        setMessage('サーバーに接続できません。ネットワークを確認してください。');
+      }
+      setIsError(true);
     }
   };
 
   const goToRegister = () => {
-    navigate('/register'); 
+    navigate('/register');
   };
 
   return (
@@ -41,12 +59,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, errorMessage }) => {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <button onClick={handleLoginClick}>ログイン</button> 
-
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      
-      <p>まだアカウントをお持ちではありませんか？</p>
+      <button onClick={handleLogin}>ログイン</button>
       <button onClick={goToRegister}>会員登録</button>
+      {message && <p style={{ color: isError ? 'red' : 'green' }}>{message}</p>}
     </div>
   );
 };
