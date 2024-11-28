@@ -215,7 +215,6 @@ def delete_assignment(assignment_id):
     db.session.commit()
     return jsonify({'message': 'Assignment deleted'}), 200
 
-
 if __name__ == '__main__':
     app.run(debug=True)
 
