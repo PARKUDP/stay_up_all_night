@@ -1,0 +1,54 @@
+.sidebar {
+    width: 25%; /* サイドバーが開いているときの幅 */
+    transition: width 0.3s ease;
+    overflow: hidden;
+    background-color: #f4f4f4;
+    border-right: 1px solid #ddd;
+    position: relative;
+    height: 100vh; /* サイドバーを全高に設定 */
+}
+
+.logo {
+    width: 80px; /* 画像の幅 */
+    height: 100px; /* 画像の高さ */
+    object-fit: cover; /* 画像を縦横比を維持してフィット */
+}
+
+.sidebar.closed {
+    width: 60px; /* サイドバーが閉じたときの幅を固定 */
+    transition: width 0.3s ease;
+}
+
+/* サイドバーメニュー */
+.menu {
+    list-style-type: none;
+    padding: 10px; /* サイドバーメニューの余白 */
+}
+
+.menuItem {
+    margin-bottom: 0.5rem;
+}
+
+.menuItem a {
+    text-decoration: none;
+    color: #333;
+    font-size: 1rem;
+    transition: color 0.3s ease;
+}
+
+.menuItem a:hover,
+.menuItem a:focus {
+    color: #1a73e8;
+}
+
+/* メインコンテンツ */
+.content {
+    padding: 20px;
+    padding-top: 60px;
+    margin-left: 10%; /* サイドバーの幅に合わせて調整 */
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.closed ~ .content {
+    margin-left: 60px; /* サイドバーが閉じたときにコンテンツのマージンを調整 */
+}

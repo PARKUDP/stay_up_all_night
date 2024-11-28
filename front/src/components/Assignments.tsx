@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Assignments.css';
+import Sidebar from './bar/Sidebar';
 
 interface Assignment {
     id: number;
@@ -22,6 +23,9 @@ const Assignments: React.FC = () => {
     const [filter, setFilter] = useState<string>('すべて');
     const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
     const [loadingStatus, setLoadingStatus] = useState<number | null>(null);
+
+    // ユーザーIDを取得
+    const currentUserId = localStorage.getItem('user_id');
 
     // メッセージ表示タイマー
     useEffect(() => {
@@ -55,7 +59,7 @@ const Assignments: React.FC = () => {
             setMessage({ text: 'タイトルと期限を入力してください。', type: 'error' });
             return;
         }
-
+    
         axios
             .post('http://localhost:5001/assignments', {
                 title: newTitle.trim(),
@@ -70,16 +74,26 @@ const Assignments: React.FC = () => {
             })
             .catch((error) => {
                 console.error('Error adding assignment:', error.response || error.message);
-                setMessage({ text: '課題の追加に失敗しました。', type: 'error' });
+                if (error.response && error.response.data.error) {
+                    setMessage({ text: error.response.data.error, type: 'error' });
+                } else {
+                    setMessage({ text: '課題の追加に失敗しました。', type: 'error' });
+                }
             });
     };
+    
 
     // 課題のステータスを更新
-    const updateStatus = (assignmentId: number, newStatus: string) => {
+    const updateStatus = (assignmentId: number, userId: string | null, newStatus: string)=> {
+        if (!userId) {
+            setMessage({ text: 'ユーザー情報が見つかりません。ログインし直してください。', type: 'error' });
+            return;
+        }
+
         setLoadingStatus(assignmentId);
 
         axios
-            .put(`http://localhost:5001/assignments/${assignmentId}/status`, { status: newStatus })
+            .put(`http://localhost:5001/assignments/${assignmentId}/status`, { user_id: currentUserId, status: newStatus })
             .then((response) => {
                 setAssignments((prev) =>
                     prev.map((assignment) =>
@@ -118,14 +132,17 @@ const Assignments: React.FC = () => {
         const today = new Date();
         const deadline = new Date(assignment.deadline);
         const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-        if (filter === '1日以内') {
-            return diffDays <= 1;
-        } else if (filter === '3日以内') {
-            return diffDays <= 3;
-        } else if (filter === '7日以内') {
-            return diffDays <= 7;
-        }
+    
+        // ステータスでフィルタリング
+        if (filter === '未着手') return assignment.status === '未着手';
+        if (filter === '進行中') return assignment.status === '進行中';
+        if (filter === '完了') return assignment.status === '完了';
+    
+        // 期限でフィルタリング
+        if (filter === '1日以内') return diffDays <= 1;
+        if (filter === '3日以内') return diffDays <= 3;
+        if (filter === '7日以内') return diffDays <= 7;
+    
         return true; // "すべて"の場合
     });
 
@@ -135,64 +152,54 @@ const Assignments: React.FC = () => {
     };
 
     return (
-        <div>
-            <h1>{className} - 課題</h1>
-            {message && <p className={`message ${message.type}`}>{message.text}</p>}
+        <div className="app-container">
+            {/* サイドバー */}
+            <Sidebar />
+            {/* メインコンテンツ */}
+            <div className="content">
+                <h1>{className} - 課題一覧</h1>
+                {message && <p className={`message ${message.type}`}>{message.text}</p>}
 
-            {/* 課題追加フォーム */}
-            <div className="form-container">
-                <h2>新しい課題を追加</h2>
-                <input
-                    type="text"
-                    placeholder="課題のタイトル"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                />
-                <input
-                    type="date"
-                    value={newDeadline}
-                    onChange={(e) => setNewDeadline(e.target.value)}
-                />
-                <button onClick={addAssignment}>課題を追加</button>
+                {/* 課題追加フォーム */}
+                <div className="form-container">
+                    <h2>新しい課題を追加</h2>
+                    <input
+                        type="text"
+                        placeholder="課題のタイトル"
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                    />
+                    <input
+                        type="date"
+                        value={newDeadline}
+                        onChange={(e) => setNewDeadline(e.target.value)}
+                    />
+                    <button onClick={addAssignment}>課題を追加</button>
+                </div>
+                {/* 課題リスト */}
+                <div>
+                    <ul>
+                        {filteredAssignments.map((assignment) => (
+                            <li className="assignment-card" key={assignment.id}>
+                                <h2>{assignment.title}</h2>
+                                <p>期限: {assignment.deadline}</p>
+                                <p>ステータス:</p>
+                                <select
+                                    value={assignment.status}
+                                    onChange={(e) => updateStatus(assignment.id, currentUserId, e.target.value)}
+                                    disabled={loadingStatus === assignment.id}
+                                >
+                                    <option value="未着手">未着手</option>
+                                    <option value="進行中">進行中</option>
+                                    <option value="完了">完了</option>
+                                </select>
+                                <p>完了人数: {assignment.completionCount}人</p>
+                                <button onClick={() => deleteAssignment(assignment.id)}>削除</button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
             </div>
-
-            {/* 課題リスト */}
-            <div>
-                <ul>
-                    {filteredAssignments.map((assignment) => (
-                        <li className="assignment-card" key={assignment.id}>
-                            <h2>{assignment.title}</h2>
-                            <p>期限: {assignment.deadline}</p>
-                            <p>ステータス:</p>
-                            <select
-                                value={assignment.status}
-                                onChange={(e) => updateStatus(assignment.id, e.target.value)}
-                                disabled={loadingStatus === assignment.id}
-                            >
-                                <option value="未着手">未着手</option>
-                                <option value="進行中">進行中</option>
-                                <option value="完了">完了</option>
-                            </select>
-                            <p>完了人数: {assignment.completionCount}人</p>
-                            <button onClick={() => deleteAssignment(assignment.id)}>削除</button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            {/* フィルター */}
-            <div>
-                <h2>期限別課題リスト</h2>
-                <label htmlFor="filter">期限でフィルタリング:</label>
-                <select id="filter" value={filter} onChange={(e) => setFilter(e.target.value)}>
-                    <option value="すべて">すべて</option>
-                    <option value="1日以内">1日以内</option>
-                    <option value="3日以内">3日以内</option>
-                    <option value="7日以内">7日以内</option>
-                </select>
-            </div>
-
-            <button onClick={goBack} style={{ marginTop: '20px', padding: '10px 20px' }}>戻る</button>
         </div>
     );
 };

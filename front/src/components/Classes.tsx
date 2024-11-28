@@ -76,6 +76,7 @@ const Classes: React.FC = () => {
       <img src={LogoImage} alt="Logo" />
       <h2>授業を選択する</h2>
       {error && <p className="error-message">{error}</p>}
+      <button onClick={addClass}>授業登録を追加する</button>
       {classes.length > 0 ? (
         classes.map((c) => (
           <div className="input-container" key={c.id}>
@@ -94,7 +95,6 @@ const Classes: React.FC = () => {
       ) : (
         <p>登録されている授業がありません。授業を登録してください。</p>
       )}
-      <button onClick={addClass}>授業登録</button>
     </div>
   );
 };
