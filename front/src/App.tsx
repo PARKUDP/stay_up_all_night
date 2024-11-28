@@ -3,15 +3,20 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { Classes, Assignments, LoginForm, RegisterForm, LogoutButton } from './components';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // ログイン状態を管理
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
+
 
   const handleLogout = () => {
-    setIsLoggedIn(false); // ログイン状態をリセット
-    window.location.href = '/login'; // ログイン画面にリダイレクト
+    setIsLoggedIn(false);
+    localStorage.setItem('isLoggedIn', 'false'); 
+    window.location.href = '/login';
   };
 
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true); // ログイン状態を更新
+    setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true'); 
   };
 
   return (

@@ -5,8 +5,8 @@ export interface MenuItem {
 
 export const menuItems: MenuItem[] = [
     { href: '/', label: 'ダッシュボード' },
-    { href: '/classes', label: 'クラス一覧' },
-    { href: '/assignments', label: '課題一覧' },
-    { href: '/profile', label: 'プロフィール' },
+    //{ href: '/classes', label: 'クラス一覧' },
+    //{ href: '/assignments', label: '課題一覧' },
+    //{ href: '/profile', label: 'プロフィール' },
     { href: '/logout', label: 'ログアウト' },
 ];
