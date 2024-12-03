@@ -15,14 +15,14 @@ body {
 
 .content {
     flex: 1;
-    padding: 40px;
-    background-color: #fceefb;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
 /* タイトル */
 h1 {
-    color: #2c3e50;
+    color: #333;
     font-size: 24px;
     text-align: center;
     margin-bottom: 20px;
@@ -30,32 +30,31 @@ h1 {
 
 /* 課題追加フォーム */
 .form-container {
-    background-color: #ecf0f1;
-    border: 1px solid #bdc3c7;
-    border-radius: 20px;
-    padding: 20px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .form-container h2 {
     font-size: 18px;
-    margin-bottom: 15px;
-    color: #34495e;
+    margin-bottom: 10px;
+    color: #333;
 }
 
 .form-container input[type="text"],
 .form-container input[type="date"] {
-    width: 80%;
+    width: calc(100% - 20px);
     padding: 10px;
     margin-bottom: 10px;
-    border: 1px solid #bdc3c7;
+    border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
 }
 
 .form-container button {
-    width: 80%;
+    width: 100%;
     padding: 10px;
     background-color: #3498db;
     color: white;
@@ -82,31 +81,46 @@ ul {
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .assignment-card h2 {
     margin: 0;
     font-size: 18px;
-    color: #2c3e50;
+    color: #333;
 }
 
 .assignment-card p {
     margin: 5px 0;
     font-size: 14px;
-    color: #7f8c8d;
+    color: #555;
 }
 
-/* ステータスセレクトボックス */
-.assignment-card select {
+/* ステータスセレクトボックスの基本スタイル */
+.status-select {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
-    background-color: #ecf0f1;
 }
 
-/* ボタン */
+/* ステータスに応じた色分け */
+.status-未着手 {
+    background-color: #f39c12;
+    color: white;
+}
+
+.status-進行中 {
+    background-color: #3498db;
+    color: white;
+}
+
+.status-完了 {
+    background-color: #2ecc71;
+    color: white;
+}
+
+/* 削除ボタン */
 .assignment-card button {
     padding: 8px 12px;
     margin-top: 10px;
@@ -139,4 +153,33 @@ ul {
 .message.error {
     background-color: #e74c3c;
     color: white;
+}
+
+/* フィルタリングボタン */
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-button {
+    padding: 8px 12px;
+    background-color: #3498db;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.filter-button:hover {
+    background-color: #2980b9;
+}
+
+.filter-button.active {
+    background-color: #1abc9c;
+    font-weight: bold;
 }

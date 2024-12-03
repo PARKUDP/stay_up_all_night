@@ -151,15 +151,30 @@ const Assignments: React.FC = () => {
         navigate(-1);
     };
 
+    const filterOptions = ['すべて', '未着手', '進行中', '完了', '1日以内', '3日以内', '7日以内'];
     return (
         <div className="app-container">
             {/* サイドバー */}
             <Sidebar />
+    
             {/* メインコンテンツ */}
             <div className="content">
                 <h1>{className} - 課題一覧</h1>
                 {message && <p className={`message ${message.type}`}>{message.text}</p>}
-
+    
+                {/* フィルタリングボタン */}
+                <div className="filter-container">
+                    {filterOptions.map((option) => (
+                        <button
+                            key={option}
+                            className={`filter-button ${filter === option ? 'active' : ''}`}
+                            onClick={() => setFilter(option)}
+                        >
+                            {option}
+                        </button>
+                    ))}
+                </div>
+    
                 {/* 課題追加フォーム */}
                 <div className="form-container">
                     <h2>新しい課題を追加</h2>
@@ -176,6 +191,7 @@ const Assignments: React.FC = () => {
                     />
                     <button onClick={addAssignment}>課題を追加</button>
                 </div>
+    
                 {/* 課題リスト */}
                 <div>
                     <ul>
@@ -185,8 +201,11 @@ const Assignments: React.FC = () => {
                                 <p>期限: {assignment.deadline}</p>
                                 <p>ステータス:</p>
                                 <select
+                                    className={`status-select status-${assignment.status}`}
                                     value={assignment.status}
-                                    onChange={(e) => updateStatus(assignment.id, currentUserId, e.target.value)}
+                                    onChange={(e) => 
+                                        updateStatus(assignment.id, currentUserId, e.target.value)
+                                    }
                                     disabled={loadingStatus === assignment.id}
                                 >
                                     <option value="未着手">未着手</option>
