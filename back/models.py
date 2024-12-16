@@ -31,5 +31,6 @@ class AssignmentStatus(db.Model):
 
 class AssignmentCompletion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     assignment_id = db.Column(db.Integer, db.ForeignKey('assignment.id'), nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(50), nullable=False)

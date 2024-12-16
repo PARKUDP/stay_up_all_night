@@ -1,56 +1,48 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Classes from './components/Classes';
-import Assignments from './components/Assignments';
-import LoginForm from './components/LoginForm';
-import RegisterForm from './components/RegisterForm';
-import LogoutButton from './components/LogoutButton'; 
-import axios from 'axios';
+import { Classes, Assignments, LoginForm, RegisterForm, LogoutButton } from './components';
 
 function App() {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
 
-  const handleLogin = async (username: string, password: string) => {
-    try {
-      const response = await axios.post('http://127.0.0.1:5000/login', { username, password });
-      const token = response.data.token;
-      localStorage.setItem('token', token);
-      window.location.href = '/';
-    } catch (error) {
-      setErrorMessage('ログインに失敗しました。ユーザー名またはパスワードが間違っています。');
-    }
-  };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    localStorage.setItem('isLoggedIn', 'false'); 
     window.location.href = '/login';
   };
 
-  const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-    const token = localStorage.getItem('token');
-    return token ? children : <Navigate to="/login" />;
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true'); 
   };
 
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginForm onSubmit={handleLogin} errorMessage={errorMessage} />} />
+        <Route path="/login" element={<LoginForm onLoginSuccess={handleLoginSuccess} />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/" element={
-          <PrivateRoute>
+          isLoggedIn ? (
             <div>
               <LogoutButton onLogout={handleLogout} />
               <Classes />
             </div>
-          </PrivateRoute>
+          ) : (
+            <Navigate to="/login" />
+          )
         } />
         <Route path="/assignments/:classId" element={
-          <PrivateRoute>
+          isLoggedIn ? (
             <div>
               <LogoutButton onLogout={handleLogout} />
               <Assignments />
             </div>
-          </PrivateRoute>
+          ) : (
+            <Navigate to="/login" />
+          )
         } />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>

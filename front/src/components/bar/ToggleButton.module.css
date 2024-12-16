@@ -1,0 +1,71 @@
+/* トグルボタン */
+.toggle {
+    position: absolute;
+    top: 10px; /* ボタン全体の上位置 */
+    left: 10px; /* ボタン全体の左位置 */
+    width: 40px; /* ボタンの幅 */
+    height: 40px; /* ボタンの高さ */
+    background: none; /* 背景なし */
+    border: none; /* 枠線なし */
+    cursor: pointer; /* カーソルをポインタに変更 */
+    display: flex; /* 中の要素を縦に並べる */
+    flex-direction: column;
+    justify-content: center; /* 中央揃え */
+    align-items: center; /* 水平方向に中央揃え */
+    outline: none; /* アウトラインを削除 */
+    z-index: 10; /* 前面に表示 */
+    transition: background-color 0.3s ease-in-out;
+}
+
+.toggle:hover {
+    background-color: rgba(52, 73, 94, 0.1); /* ボタン全体の背景色 */
+    border-radius: 5px; /* ボタンに角丸を追加 */
+}
+
+/* ハンバーガーメニューの線 */
+.hamburger {
+    width: 30px; /* 線の幅 */
+    height: 4px; /* 線の高さ */
+    background-color: #34495e; /* 線の色 */
+    border-radius: 2px; /* 線の角を丸く */
+    position: relative;
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* 疑似要素で上下の線を追加 */
+.hamburger::before,
+.hamburger::after {
+    content: ''; /* 疑似要素を追加 */
+    position: absolute;
+    width: 30px; /* 線の幅 */
+    height: 4px; /* 線の高さ */
+    background-color: #34495e; /* 線の色 */
+    border-radius: 2px; /* 線の角を丸く */
+    left: 0; /* 左端に配置 */
+    transition: transform 0.3s ease-in-out, top 0.3s ease-in-out;
+}
+
+/* 上の線 */
+.hamburger::before {
+    top: -10px; /* 中央から上方向に配置 */
+}
+
+/* 下の線 */
+.hamburger::after {
+    top: 10px; /* 中央から下方向に配置 */
+}
+
+/* サイドバーが開いているときのスタイル */
+.toggle[aria-expanded="true"] .hamburger {
+    background-color: transparent; /* 中央の線を透明に */
+}
+
+.toggle[aria-expanded="true"] .hamburger::before {
+    top: 0; /* 中央に移動 */
+    transform: rotate(45deg); /* 45度回転 */
+}
+
+.toggle[aria-expanded="true"] .hamburger::after {
+    top: 0; /* 中央に移動 */
+    transform: rotate(-45deg); /* -45度回転 */
+}

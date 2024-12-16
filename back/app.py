@@ -1,41 +1,49 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 from datetime import datetime
 from models import db, User, Class, Assignment, AssignmentCompletion, AssignmentStatus
 from flask_migrate import Migrate
 
-
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///data.db" 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'dca79b97372436bae63b1382945d3b28e82e0bd7e79dd27710353f8bdbf689e2'
 
 db.init_app(app)
-jwt = JWTManager(app)
 migrate = Migrate(app, db)
+
+@app.route('/', methods=['GET'])
+def hello_word():
+    return 'Hello Enpit!!!!'
 
 @app.route('/register', methods=['POST'])
 def register():
-    username = request.json.get('username')
-    password = request.json.get('password')
+    try:
+        username = request.json.get('username')
+        password = request.json.get('password')
 
-    if not username or not password:
-        return jsonify({'error': 'UsernameとPasswordを入力してください。'}), 400
+        print(f"Received data: username={username}, password={'***' if password else None}")
 
-    if User.query.filter_by(username=username).first():
-        return jsonify({'error': 'すでにそのユーザー名は使用されています。'}), 400
+        if not username or not password:
+            return jsonify({'error': 'UsernameとPasswordを入力してください。'}), 400
 
-    hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-    new_user = User(username=username, password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
+        if User.query.filter_by(username=username).first():
+            return jsonify({'error': 'すでにそのユーザー名は使用されています。'}), 400
 
-    return jsonify({'message': '会員登録完了しました'}), 201
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify({'message': '会員登録完了しました'}), 201
+
+    except Exception as e:
+        print(f"Error in register endpoint: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -45,16 +53,21 @@ def login():
     if not username or not password:
         return jsonify({'error': 'Usernameとpasswordを入力してください。'}), 400
 
+    # ユーザーを検索
     user = User.query.filter_by(username=username).first()
 
+    # ユーザーが存在しない、またはパスワードが一致しない場合
     if not user or not check_password_hash(user.password, password):
         return jsonify({'error': '無効な資格情報です。'}), 401
 
-    access_token = create_access_token(identity=user.id)
-    return jsonify({'message': 'Login successful', 'token': access_token}), 200
+    # ログイン成功時のレスポンス
+    return jsonify({
+        'message': 'Login successful',
+        'user_id': user.id  # ユーザーIDを返す
+    }), 200
+
 
 @app.route('/assignments', methods=['POST'])
-@jwt_required()
 def add_assignment():
     title = request.json.get('title')
     deadline_str = request.json.get('deadline')
@@ -63,32 +76,117 @@ def add_assignment():
     if not title or not deadline_str or not class_id:
         return jsonify({'error': 'タイトル、期限、クラスIDを入力してください。'}), 400
 
+    # クラスIDが存在するか確認
+    class_instance = Class.query.get(class_id)
+    if not class_instance:
+        return jsonify({'error': '指定されたクラスが存在しません。'}), 404
+
+    # 同じクラス内で同じタイトルの課題が存在するかを確認
+    existing_assignment = Assignment.query.filter_by(title=title, class_id=class_id).first()
+    if existing_assignment:
+        return jsonify({'error': '同じ名前の課題がすでに存在します。'}), 400
+
+    # 日付形式のバリデーション
     try:
         deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
     except ValueError:
         return jsonify({'error': '期限の日付形式が正しくありません。'}), 400
 
+    # 新しい課題を作成
     new_assignment = Assignment(title=title, class_id=class_id, deadline=deadline)
     db.session.add(new_assignment)
     db.session.commit()
 
-    return jsonify({'id': new_assignment.id, 'title': new_assignment.title, 'deadline': new_assignment.deadline}), 201
+    # 初期状態のステータスを全ユーザー分作成
+    users = User.query.all()
+    for user in users:
+        new_status = AssignmentStatus(
+            user_id=user.id,
+            assignment_id=new_assignment.id,
+            status='未着手'
+        )
+        db.session.add(new_status)
+
+    db.session.commit()
+
+    return jsonify({
+        'id': new_assignment.id,
+        'title': new_assignment.title,
+        'deadline': new_assignment.deadline.strftime('%Y-%m-%d'),
+        'completionCount': 0,
+        'status': '未着手'
+    }), 201
+
 
 @app.route('/classes/<int:class_id>/assignments', methods=['GET'])
-@jwt_required()
 def get_assignments(class_id):
-    class_instance = Class.query.get_or_404(class_id)
-    assignments = Assignment.query.filter_by(class_id=class_id).all()
-    return jsonify({
-        'class_name': class_instance.name,
-        'assignments': [
-            {'id': a.id, 'title': a.title, 'completed': a.completed, 'term': a.term, 'deadline': a.deadline.strftime('%Y-%m-%d')}
-            for a in assignments
-        ]
-    })
+    try:
+        # クラスの存在確認
+        class_instance = Class.query.get(class_id)
+        if not class_instance:
+            return jsonify({'error': 'Class not found'}), 404
+
+        # 課題の取得
+        assignments = Assignment.query.filter_by(class_id=class_id).all()
+        assignments_data = []
+
+        for assignment in assignments:
+            try:
+                # 完了者数を正確にカウント
+                completion_count = AssignmentStatus.query.filter_by(
+                    assignment_id=assignment.id, status='完了').count()
+            except Exception as e:
+                print(f"Error fetching completion count for assignment {assignment.id}: {e}")
+                completion_count = 0
+
+            assignments_data.append({
+                'id': assignment.id,
+                'title': assignment.title,
+                'deadline': assignment.deadline.strftime('%Y-%m-%d'),
+                'completionCount': completion_count,  # 正確な完了人数を含める
+                'status': '未着手'  # 必要に応じてユーザーのステータスを追加
+            })
+
+        return jsonify({
+            'class_name': class_instance.name,
+            'assignments': assignments_data
+        }), 200
+    except Exception as e:
+        print(f"Error in get_assignments: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+@app.route('/assignments/<int:assignment_id>/status', methods=['PUT'])
+def update_assignment_status(assignment_id):
+    try:
+        request_data = request.get_json()
+        user_id = request_data.get('user_id')
+        new_status = request_data.get('status')
+
+        if not user_id or not new_status:
+            return jsonify({'error': 'user_id と status の両方が必要です。'}), 400
+
+        # `AssignmentStatus` エントリを確認
+        assignment_status = AssignmentStatus.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
+
+        if not assignment_status:
+            # エントリがない場合、新規作成
+            assignment_status = AssignmentStatus(user_id=user_id, assignment_id=assignment_id, status=new_status)
+            db.session.add(assignment_status)
+        else:
+            # エントリがある場合、ステータスを更新
+            assignment_status.status = new_status
+
+        db.session.commit()
+
+        # 完了数をカウント
+        completion_count = AssignmentStatus.query.filter_by(assignment_id=assignment_id, status='完了').count()
+
+        return jsonify({'message': 'ステータスが更新されました。', 'completionCount': completion_count}), 200
+    except Exception as e:
+        print(f"Error updating assignment status for assignment {assignment_id}: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
 
 @app.route('/classes', methods=['GET', 'POST'])
-@jwt_required()
 def classes():
     if request.method == 'GET':
         all_classes = Class.query.all()
@@ -104,7 +202,6 @@ def classes():
         return jsonify({'id': new_class.id, 'name': new_class.name}), 201
 
 @app.route('/classes/<int:class_id>', methods=['DELETE'])
-@jwt_required()
 def delete_class(class_id):
     class_to_delete = Class.query.get_or_404(class_id)
     db.session.delete(class_to_delete)
@@ -112,79 +209,12 @@ def delete_class(class_id):
     return jsonify({'message': 'Class and related assignments deleted'}), 200
 
 @app.route('/assignments/<int:assignment_id>', methods=['DELETE'])
-@jwt_required()
 def delete_assignment(assignment_id):
     assignment_to_delete = Assignment.query.get_or_404(assignment_id)
     db.session.delete(assignment_to_delete)
     db.session.commit()
     return jsonify({'message': 'Assignment deleted'}), 200
 
-@app.route('/assignments/<int:assignment_id>/complete', methods=['POST'])
-@jwt_required()
-def complete_assignment(assignment_id):
-    user_id = get_jwt_identity()
-    completion = AssignmentCompletion.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
-
-    if completion:
-        db.session.delete(completion)
-        message = '課題の完了を取り消しました。'
-    else:
-        new_completion = AssignmentCompletion(user_id=user_id, assignment_id=assignment_id)
-        db.session.add(new_completion)
-        message = '課題を完了しました。'
-
-    db.session.commit()
-    return jsonify({'message': message})
-
-@app.route('/assignments/<int:assignment_id>/completion_count', methods=['GET'])
-@jwt_required()
-def get_completion_count(assignment_id):
-    count = AssignmentCompletion.query.filter_by(assignment_id=assignment_id).count()
-    return jsonify({'completion_count': count})
-
-
-@app.route('/assignments/<int:assignment_id>/status', methods=['GET'])
-@jwt_required()
-def get_assignment_status(assignment_id):
-    user_id = get_jwt_identity()
-    status_entry = AssignmentStatus.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
-
-    if status_entry:
-        status = status_entry.status
-    else:
-        status = '未着手'  
-
-    return jsonify({'status': status}), 200
-
-@app.route('/assignments/<int:assignment_id>/status', methods=['PUT'])
-@jwt_required()
-def update_assignment_status(assignment_id):
-    user_id = get_jwt_identity()
-    new_status = request.json.get('status')
-
-    if new_status not in ['未着手', '進行中', '完了']:
-        return jsonify({'error': '無効なステータスです。'}), 400
-
-    status_entry = AssignmentStatus.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
-    if status_entry:
-        status_entry.status = new_status
-    else:
-        status_entry = AssignmentStatus(user_id=user_id, assignment_id=assignment_id, status=new_status)
-        db.session.add(status_entry)
-
-    if new_status == '完了':
-        completion = AssignmentCompletion.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
-        if not completion:
-            new_completion = AssignmentCompletion(user_id=user_id, assignment_id=assignment_id)
-            db.session.add(new_completion)
-    else:
-        completion = AssignmentCompletion.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
-        if completion:
-            db.session.delete(completion)
-
-    db.session.commit()
-    return jsonify({'message': 'ステータスが更新されました。', 'status': new_status}), 200
-
-
 if __name__ == '__main__':
     app.run(debug=True)
+

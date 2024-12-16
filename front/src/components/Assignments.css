@@ -1,93 +1,185 @@
+/* 全体レイアウト */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f9f1fa;
-    margin-left: 30px;
+    margin: 0;
+    padding: 0;
+    background-color: #f7f7f7;
+    color: #333;
 }
 
-.assignment-list {
+/* メインコンテンツ */
+.app-container {
     display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
+    min-height: 100vh;
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+/* タイトル */
+h1 {
+    color: #333;
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* 課題追加フォーム */
+.form-container {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.form-container h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.form-container input[type="text"],
+.form-container input[type="date"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.form-container button:hover {
+    background-color: #2980b9;
+}
+
+/* 課題リスト */
+ul {
+    list-style-type: none;
+    padding: 0;
 }
 
 .assignment-card {
-    background-color: #fff;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    width: 250px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .assignment-card h2 {
-    font-size: 20px;
-    margin-bottom: 8px;
+    margin: 0;
+    font-size: 18px;
+    color: #333;
 }
 
 .assignment-card p {
+    margin: 5px 0;
     font-size: 14px;
-    margin: 4px 0;
     color: #555;
 }
 
-.status-container {
-    position: absolute;
-    top: 20px;
-    right: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-bottom: 10px;  
-}
-
-.assignment-buttons {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    position: absolute;
-    right: 10px;
-    top: 90px;  
-    margin-top: 60px; 
-}
-
-
-.status-container select {
-    font-size: 18px;       
-    padding: 10px 14px;     
-    border-radius: 4px;      
-    border: 1px solid #ccc;  
-    background-color: #f0f0f0; 
-    cursor: pointer;
-    width: 100%;             
-}
-
-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 16px;
+/* ステータスセレクトボックスの基本スタイル */
+.status-select {
+    padding: 8px;
+    border: 1px solid #ccc;
     border-radius: 4px;
-    cursor: pointer;
-    margin-top: 8px;
+    font-size: 14px;
 }
 
-button:hover {
-    background-color: #0056b3;
+/* ステータスに応じた色分け */
+.status-未着手 {
+    background-color: #f39c12;
+    color: white;
 }
 
-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+.status-進行中 {
+    background-color: #3498db;
+    color: white;
 }
 
-button.add-assignment {
+.status-完了 {
+    background-color: #2ecc71;
+    color: white;
+}
+
+/* 削除ボタン */
+.assignment-card button {
+    padding: 8px 12px;
     margin-top: 10px;
-    background-color: #28a745;
+    background-color: #e74c3c;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
 }
 
-button.add-assignment:hover {
-    background-color: #218838;
+.assignment-card button:hover {
+    background-color: #c0392b;
+}
+
+/* メッセージ */
+.message {
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.message.success {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.message.error {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* フィルタリングボタン */
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-button {
+    padding: 8px 12px;
+    background-color: #3498db;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.filter-button:hover {
+    background-color: #2980b9;
+}
+
+.filter-button.active {
+    background-color: #1abc9c;
+    font-weight: bold;
 }

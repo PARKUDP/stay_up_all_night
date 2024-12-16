@@ -1,78 +1,88 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './styles.css'; 
+import LogoImage from '../img/logo.png';
+import './Classes.css';
 
 interface Class {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 }
 
-function Classes() {
-    const [classes, setClasses] = useState<Class[]>([]);
-    const navigate = useNavigate();
+const Classes: React.FC = () => {
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-    const fetchClasses = () => {
-        const token = localStorage.getItem('token'); 
-        axios.get('http://127.0.0.1:5000/classes', {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then((response: AxiosResponse<Class[]>) => setClasses(response.data))
-        .catch((error: Error) => console.error('Error:', error));
-    };
+  useEffect(() => {
+    axios
+      .get('http://localhost:5001/classes')
+      .then((response) => {
+        setClasses(response.data);
+        setError(null);
+      })
+      .catch(() => {
+        setError('授業の取得に失敗しました。再試行してください。');
+      });
+  }, []);
 
-    useEffect(() => {
-        fetchClasses();
-    }, []);
+  const handleClassClick = (classId: number) => {
+    navigate(`/assignments/${classId}`);
+  };
 
-    const handleClassClick = (classId: number) => {
-        navigate(`/assignments/${classId}`);
-    };
+  const addClass = () => {
+    const className = prompt('授業名を登録してください。');
+    if (!className) return;
 
-    const addClass = () => {
-        const className = prompt('授業名を登録してください。');
-        if (className) {
-            const token = localStorage.getItem('token'); 
-            axios.post('http://127.0.0.1:5000/classes', { name: className }, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            .then((response: AxiosResponse<Class>) => {
-                setClasses([...classes, response.data]);
-            })
-            .catch((error: Error) => console.error('Error adding class:', error));
-        }
-    };
+    axios
+      .post('http://localhost:5001/classes', { name: className })
+      .then((response) => {
+        setClasses([...classes, response.data]);
+        setError(null);
+      })
+      .catch(() => {
+        setError('授業の追加に失敗しました。');
+      });
+  };
 
-    const deleteClass = (classId: number) => {
-        const token = localStorage.getItem('token');
-        axios.delete(`http://127.0.0.1:5000/classes/${classId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(() => {
-            setClasses(classes.filter(c => c.id !== classId));
-        })
-        .catch((error: Error) => console.error('Error deleting class:', error));
-    };
+  const deleteClass = (classId: number) => {
+    if (!window.confirm('この授業を削除しますか？')) return;
 
-    return (
-        <div className="container">
-            <h1>今日も徹夜</h1>
-            <h3>授業</h3>
-            {classes.length > 0 ? (
-                classes.map(c => (
-                    <div className="input-container" key={c.id}>
-                        <div className="input-box" onClick={() => handleClassClick(c.id)} style={{ cursor: 'pointer' }}>
-                            {c.name} 
-                        </div>
-                        <button className="close-btn" onClick={() => deleteClass(c.id)}>✕</button>
-                    </div>
-                ))
-            ) : (
-                <p>登録されている授業がありません。授業を登録してください。</p>
-            )}
-            <button onClick={addClass}>授業登録</button> 
-        </div>
-    );
-}
+    axios
+      .delete(`http://localhost:5001/classes/${classId}`)
+      .then(() => {
+        setClasses(classes.filter((c) => c.id !== classId));
+        setError(null);
+      })
+      .catch(() => {
+        setError('授業の削除に失敗しました。');
+      });
+  };
+
+  return (
+    <div className="container">
+      <img src={LogoImage} alt="Logo" className="logo" />
+      <h2>授業一覧</h2>
+      {error && <p className="error-message">{error}</p>}
+      <button onClick={addClass}>授業を追加する</button>
+      <div className="classes-list">
+        {classes.length > 0 ? (
+          classes.map((c) => (
+            <div className="class-item" key={c.id}>
+              <span onClick={() => handleClassClick(c.id)} className="class-name">
+                {c.name}
+              </span>
+              <button onClick={() => deleteClass(c.id)} className="delete-btn">
+                ✕
+              </button>
+            </div>
+          ))
+        ) : (
+          <p>登録されている授業がありません。授業を登録してください。</p>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default Classes;
