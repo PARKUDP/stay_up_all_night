@@ -18,7 +18,7 @@ const RegisterForm: React.FC = () => {
       return;
     }
     try {
-      await axios.post('http://localhost:5001/register', { username, password });
+      await axios.post('http://127.0.0.1:5000/register', { username, password });
       setMessage('登録が完了しました！ログイン画面に移動します！');
       setIsError(false);
       setTimeout(() => navigate('/login'), 2000);

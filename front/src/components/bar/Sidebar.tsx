@@ -27,7 +27,7 @@ const Sidebar: React.FC = () => {
     // Fetch classes data
     useEffect(() => {
         axios
-            .get("http://localhost:5001/classes")
+            .get("http://127.0.0.1:5000/classes")
             .then((response) => setClasses(response.data))
             .catch((err) => console.error("Failed to fetch classes:", err));
     }, []);

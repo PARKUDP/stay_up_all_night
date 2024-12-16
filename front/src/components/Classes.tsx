@@ -16,7 +16,7 @@ const Classes: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get('http://localhost:5001/classes')
+      .get('http://127.0.0.1:5000/classes')
       .then((response) => {
         setClasses(response.data);
         setError(null);
@@ -35,7 +35,7 @@ const Classes: React.FC = () => {
     if (!className) return;
 
     axios
-      .post('http://localhost:5001/classes', { name: className })
+      .post('http://127.0.0.1:5000/classes', { name: className })
       .then((response) => {
         setClasses([...classes, response.data]);
         setError(null);
@@ -49,7 +49,7 @@ const Classes: React.FC = () => {
     if (!window.confirm('この授業を削除しますか？')) return;
 
     axios
-      .delete(`http://localhost:5001/classes/${classId}`)
+      .delete(`http://127.0.0.1:5000/classes/${classId}`)
       .then(() => {
         setClasses(classes.filter((c) => c.id !== classId));
         setError(null);

@@ -38,7 +38,7 @@ const Assignments: React.FC = () => {
     // 課題データの取得
     const fetchAssignments = useCallback(() => {
         axios
-            .get(`http://localhost:5001/classes/${classId}/assignments`)
+            .get(`http://127.0.0.1:5000/classes/${classId}/assignments`)
             .then((response) => {
                 setClassName(response.data.class_name);
                 setAssignments(response.data.assignments);
@@ -61,7 +61,7 @@ const Assignments: React.FC = () => {
         }
     
         axios
-            .post('http://localhost:5001/assignments', {
+            .post('http://127.0.0.1:5000/assignments', {
                 title: newTitle.trim(),
                 deadline: newDeadline,
                 class_id: classId,
@@ -93,7 +93,7 @@ const Assignments: React.FC = () => {
         setLoadingStatus(assignmentId);
 
         axios
-            .put(`http://localhost:5001/assignments/${assignmentId}/status`, { user_id: currentUserId, status: newStatus })
+            .put(`http://127.0.0.1:5000/assignments/${assignmentId}/status`, { user_id: currentUserId, status: newStatus })
             .then((response) => {
                 setAssignments((prev) =>
                     prev.map((assignment) =>
@@ -116,7 +116,7 @@ const Assignments: React.FC = () => {
         if (!window.confirm('本当にこの課題を削除しますか？')) return;
 
         axios
-            .delete(`http://localhost:5001/assignments/${id}`)
+            .delete(`http://127.0.0.1:5000/assignments/${id}`)
             .then(() => {
                 setAssignments((prev) => prev.filter((assignment) => assignment.id !== id));
                 setMessage({ text: '課題が削除されました。', type: 'success' });

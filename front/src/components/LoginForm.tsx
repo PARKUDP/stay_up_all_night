@@ -23,11 +23,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
     try {
-      await axios.post('http://localhost:5001/login', { username, password });
+      await axios.post('http://127.0.0.1:5000/login', { username, password });
       setMessage('ログイン成功！');
       setIsError(false);
 
-      const response = await axios.post('http://localhost:5001/login', { username, password });
+      const response = await axios.post('http://127.0.0.1:5000/login', { username, password });
 
       // サーバーから返された `user_id` を保存
       localStorage.setItem('user_id', response.data.user_id);
