@@ -14,7 +14,6 @@ interface Assignment {
 
 const Assignments: React.FC = () => {
     const { classId } = useParams<{ classId: string }>();
-    const navigate = useNavigate();
 
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [className, setClassName] = useState<string>('');
@@ -128,28 +127,31 @@ const Assignments: React.FC = () => {
     };
 
     // フィルタリング処理
-    const filteredAssignments = assignments.filter((assignment) => {
+    const filteredAssignments = assignments
+    .filter((assignment) => {
         const today = new Date();
         const deadline = new Date(assignment.deadline);
         const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
+
         // ステータスでフィルタリング
         if (filter === '未着手') return assignment.status === '未着手';
         if (filter === '進行中') return assignment.status === '進行中';
         if (filter === '完了') return assignment.status === '完了';
-    
+
         // 期限でフィルタリング
         if (filter === '1日以内') return diffDays <= 1;
         if (filter === '3日以内') return diffDays <= 3;
         if (filter === '7日以内') return diffDays <= 7;
-    
+
         return true; // "すべて"の場合
+    })
+    .sort((a, b) => {
+        // "完了" の課題をリストの末尾に移動
+        if (a.status === '完了' && b.status !== '完了') return 1;
+        if (a.status !== '完了' && b.status === '完了') return -1;
+        return 0;
     });
 
-    // 戻るボタン
-    const goBack = () => {
-        navigate(-1);
-    };
 
     const filterOptions = ['すべて', '未着手', '進行中', '完了', '1日以内', '3日以内', '7日以内'];
     return (
