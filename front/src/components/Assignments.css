@@ -72,22 +72,30 @@ h1 {
 /* 課題リスト */
 ul {
     list-style-type: none;
-    padding: 0;
+    padding: 10px;
 }
 
 .assignment-card {
     background-color: #ffffff;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.assignment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.1);
 }
 
 .assignment-card h2 {
-    margin: 0;
-    font-size: 18px;
+    margin: 0 0 10px;
+    font-size: 20px;
     color: #333;
+    font-weight: bold;
 }
 
 .assignment-card p {
@@ -120,21 +128,33 @@ ul {
     color: white;
 }
 
-/* 削除ボタン */
+/* 削除ボタン、詳細編集ボタン共通スタイル */
 .assignment-card button {
-    padding: 8px 12px;
-    margin-top: 10px;
-    background-color: #e74c3c;
+    margin-right: 10px;
+    padding: 10px 15px;
     border: none;
     border-radius: 4px;
-    color: #fff;
     cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s;
 }
 
-.assignment-card button:hover {
-    background-color: #c0392b;
+/* 削除ボタン */
+.assignment-card button:nth-child(6) {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.assignment-card button:nth-child(6):hover {
+    background-color: #cc0000;
+}
+
+/* 詳細編集ボタン */
+.assignment-card button:nth-child(7) {
+    background-color: #3498db;
+    color: white;
+}
+
+.assignment-card button:nth-child(7):hover {
+    background-color: #2980b9; 
 }
 
 /* メッセージ */
@@ -159,7 +179,7 @@ ul {
 .filter-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: left;
     gap: 10px;
     margin-bottom: 20px;
 }

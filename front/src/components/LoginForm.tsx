@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import LogoImage from '../img/logo.png';
 import './LoginForm.css';
 
 interface LoginFormProps {
@@ -52,7 +51,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   return (
     <div className="login-container">
-      <img src={LogoImage} alt="Logo" />
+      <img src='/images/logo.png' alt="Logo" />
       <h2>ログイン</h2>
       <input
         type="text"

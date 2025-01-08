@@ -121,70 +121,92 @@ def add_assignment():
 @app.route('/classes/<int:class_id>/assignments', methods=['GET'])
 def get_assignments(class_id):
     try:
-        # クラスの存在確認
+        user_id = request.args.get('user_id')  # URLパラメータからユーザーIDを取得
+        if not user_id:
+            return jsonify({'error': 'User ID is required'}), 400
+
         class_instance = Class.query.get(class_id)
         if not class_instance:
             return jsonify({'error': 'Class not found'}), 404
 
-        # 課題の取得
         assignments = Assignment.query.filter_by(class_id=class_id).all()
         assignments_data = []
 
         for assignment in assignments:
-            try:
-                # 完了者数を正確にカウント
-                completion_count = AssignmentStatus.query.filter_by(
-                    assignment_id=assignment.id, status='完了').count()
-            except Exception as e:
-                print(f"Error fetching completion count for assignment {assignment.id}: {e}")
-                completion_count = 0
+            # ユーザー固有のステータスを取得
+            status = AssignmentStatus.query.filter_by(
+                user_id=user_id,
+                assignment_id=assignment.id
+            ).first()
+
+            completion_count = AssignmentStatus.query.filter_by(
+                assignment_id=assignment.id,
+                status='完了'
+            ).count()
 
             assignments_data.append({
                 'id': assignment.id,
                 'title': assignment.title,
                 'deadline': assignment.deadline.strftime('%Y-%m-%d'),
-                'completionCount': completion_count,  # 正確な完了人数を含める
-                'status': '未着手'  # 必要に応じてユーザーのステータスを追加
+                'completionCount': completion_count,
+                'status': status.status if status else '未着手',
+                'details': assignment.details,
+                'advice': assignment.advice
             })
 
         return jsonify({
             'class_name': class_instance.name,
             'assignments': assignments_data
         }), 200
+
     except Exception as e:
-        print(f"Error in get_assignments: {e}")
+        print(f"Error in get_assignments: {str(e)}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
 @app.route('/assignments/<int:assignment_id>/status', methods=['PUT'])
 def update_assignment_status(assignment_id):
     try:
-        request_data = request.get_json()
-        user_id = request_data.get('user_id')
-        new_status = request_data.get('status')
+        data = request.json
+        user_id = data.get('user_id')
+        new_status = data.get('status')
 
-        if not user_id or not new_status:
-            return jsonify({'error': 'user_id と status の両方が必要です。'}), 400
+        if not all([user_id, new_status]):
+            return jsonify({'error': 'Missing required fields'}), 400
 
-        # `AssignmentStatus` エントリを確認
-        assignment_status = AssignmentStatus.query.filter_by(user_id=user_id, assignment_id=assignment_id).first()
+        # 既存のステータスを検索
+        status = AssignmentStatus.query.filter_by(
+            user_id=user_id,
+            assignment_id=assignment_id
+        ).first()
 
-        if not assignment_status:
-            # エントリがない場合、新規作成
-            assignment_status = AssignmentStatus(user_id=user_id, assignment_id=assignment_id, status=new_status)
-            db.session.add(assignment_status)
+        if status:
+            # 既存のステータスを更新
+            status.status = new_status
         else:
-            # エントリがある場合、ステータスを更新
-            assignment_status.status = new_status
+            # 新規ステータスを作成
+            status = AssignmentStatus(
+                user_id=user_id,
+                assignment_id=assignment_id,
+                status=new_status
+            )
+            db.session.add(status)
+
+        # 完了人数を取得
+        completion_count = AssignmentStatus.query.filter_by(
+            assignment_id=assignment_id,
+            status='完了'
+        ).count()
 
         db.session.commit()
+        return jsonify({
+            'message': 'Status updated successfully',
+            'completionCount': completion_count
+        })
 
-        # 完了数をカウント
-        completion_count = AssignmentStatus.query.filter_by(assignment_id=assignment_id, status='完了').count()
-
-        return jsonify({'message': 'ステータスが更新されました。', 'completionCount': completion_count}), 200
     except Exception as e:
-        print(f"Error updating assignment status for assignment {assignment_id}: {e}")
-        return jsonify({'error': 'Internal Server Error'}), 500
+        db.session.rollback()
+        print(f"Error updating status: {str(e)}")
+        return jsonify({'error': 'Failed to update status'}), 500
 
 @app.route('/classes', methods=['GET', 'POST'])
 def classes():
@@ -214,6 +236,48 @@ def delete_assignment(assignment_id):
     db.session.delete(assignment_to_delete)
     db.session.commit()
     return jsonify({'message': 'Assignment deleted'}), 200
+
+@app.route('/assignments/<int:assignment_id>', methods=['GET'])
+def get_assignment_details(assignment_id):
+    assignment = Assignment.query.get(assignment_id)
+    if not assignment:
+        return jsonify({'error': 'Assignment not found'}), 404
+    
+    return jsonify({
+        'id': assignment.id,
+        'title': assignment.title,
+        'deadline': assignment.deadline,
+        'details': assignment.details,
+        'advice': assignment.advice
+    })
+
+@app.route('/assignments/<int:assignment_id>/details', methods=['PUT'])
+def update_assignment_details(assignment_id):
+    data = request.json
+    print(f"Received data for assignment {assignment_id}: {data}")  # デバッグ用ログ
+
+    assignment = Assignment.query.get(assignment_id)
+    if not assignment:
+        return jsonify({'error': 'Assignment not found'}), 404
+
+    try:
+        # 現在の値をログ出力
+        print(f"Current details: {assignment.details}")
+        print(f"Current advice: {assignment.advice}")
+
+        assignment.details = data.get('details', assignment.details)
+        assignment.advice = data.get('advice', assignment.advice)
+
+        # 更新後の値をログ出力
+        print(f"Updated details: {assignment.details}")
+        print(f"Updated advice: {assignment.advice}")
+
+        db.session.commit()
+        return jsonify({'message': 'Details updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating assignment {assignment_id}: {str(e)}")
+        return jsonify({'error': 'Failed to update assignment'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

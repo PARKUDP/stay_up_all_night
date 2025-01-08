@@ -19,6 +19,8 @@ class Assignment(db.Model):
     deadline = db.Column(db.Date, nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey('class.id'), nullable=False)
     class_obj = db.relationship('Class', backref=db.backref('assignments', cascade="all, delete-orphan"))
+    details = db.Column(db.Text, nullable=True)  # 課題の詳細
+    advice = db.Column(db.Text, nullable=True)   # 課題のアドバイス
 
 class AssignmentStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)

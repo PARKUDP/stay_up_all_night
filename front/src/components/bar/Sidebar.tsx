@@ -3,7 +3,6 @@ import axios from "axios";
 import styles from "./Sidebar.module.css";
 import ToggleButton from "./ToggleButton";
 import { useNavigate } from "react-router-dom";
-import LogoImage from '../../img/logo.png';
 
 interface Class {
     id: number;
@@ -43,7 +42,7 @@ const Sidebar: React.FC = () => {
             {isOpen && (
                 <nav className={styles.content}>
                     <div className={styles.logoContainer}>
-                        <img src={LogoImage} alt="Logo" className={styles.logo} />
+                        <img src='/images/logo.png' alt="Logo" className={styles.logo} />
                         <h2 className={styles.title}>今日も徹夜</h2>
                     </div>
                     <ul className={styles.menu}>
