@@ -72,12 +72,13 @@ def add_assignment():
     title = request.json.get('title')
     deadline_str = request.json.get('deadline')
     class_id = request.json.get('class_id')
+    details = request.json.get('details')  # 追加
 
-    if not title or not deadline_str or not class_id:
-        return jsonify({'error': 'タイトル、期限、クラスIDを入力してください。'}), 400
+    if not title or not deadline_str or not class_id or not details:  # バリデーション追加
+        return jsonify({'error': 'タイトル、期限、クラスID、内容を入力してください。'}), 400
 
     # クラスIDが存在するか確認
-    class_instance = Class.query.get(class_id)
+    class_instance = db.session.get(Class, class_id)
     if not class_instance:
         return jsonify({'error': '指定されたクラスが存在しません。'}), 404
 
@@ -93,7 +94,12 @@ def add_assignment():
         return jsonify({'error': '期限の日付形式が正しくありません。'}), 400
 
     # 新しい課題を作成
-    new_assignment = Assignment(title=title, class_id=class_id, deadline=deadline)
+    new_assignment = Assignment(
+        title=title,
+        class_id=class_id,
+        deadline=deadline,
+        details=details  # 追加
+    )
     db.session.add(new_assignment)
     db.session.commit()
 
@@ -114,7 +120,8 @@ def add_assignment():
         'title': new_assignment.title,
         'deadline': new_assignment.deadline.strftime('%Y-%m-%d'),
         'completionCount': 0,
-        'status': '未着手'
+        'status': '未着手',
+        'details': new_assignment.details
     }), 201
 
 
@@ -255,7 +262,7 @@ def get_assignment_details(assignment_id):
 def update_assignment_details(assignment_id):
     data = request.json
 
-    assignment = Assignment.query.get(assignment_id)
+    assignment = db.session.get(Assignment, assignment_id)
     if not assignment:
         return jsonify({'error': '課題が見つかりません'}), 404
 
