@@ -4,3 +4,4 @@ flask_sqlalchemy
 werkzeug
 flask-jwt-extended
 Flask-Migrate
+Werkzeug
