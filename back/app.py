@@ -280,5 +280,5 @@ def update_assignment_details(assignment_id):
         return jsonify({'error': 'Failed to update assignment'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
 

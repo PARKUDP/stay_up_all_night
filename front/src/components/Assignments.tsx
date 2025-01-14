@@ -140,19 +140,26 @@ const Assignments: React.FC = () => {
             });
     };
 
-    const filteredAssignments = assignments.filter((assignment) => {
-        const today = new Date();
-        const deadline = new Date(assignment.deadline);
-        const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const filteredAssignments = assignments
+        .filter((assignment) => {
+            const today = new Date();
+            const deadline = new Date(assignment.deadline);
+            const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-        if (filter === '未着手') return assignment.status === '未着手';
-        if (filter === '進行中') return assignment.status === '進行中';
-        if (filter === '完了') return assignment.status === '完了';
-        if (filter === '1日以内') return diffDays <= 1;
-        if (filter === '3日以内') return diffDays <= 3;
-        if (filter === '7日以内') return diffDays <= 7;
-        return true;
-    });
+            if (filter === '未着手') return assignment.status === '未着手';
+            if (filter === '進行中') return assignment.status === '進行中';
+            if (filter === '完了') return assignment.status === '完了';
+            if (filter === '1日以内') return diffDays <= 1;
+            if (filter === '3日以内') return diffDays <= 3;
+            if (filter === '7日以内') return diffDays <= 7;
+            return true;
+        })
+        .sort((a, b) => {
+            // 完了した課題を後ろに
+            if (a.status === '完了' && b.status !== '完了') return 1;
+            if (a.status !== '完了' && b.status === '完了') return -1;
+            return 0;
+        });
 
     return (
         <div className="app-container">
