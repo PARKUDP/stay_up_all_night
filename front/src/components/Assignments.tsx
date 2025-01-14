@@ -38,13 +38,10 @@ const Assignments: React.FC = () => {
         }
     }, [message]);
 
-    const fetchAssignments = async () => {
+    const fetchAssignments = useCallback(async () => {
         try {
             const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                setMessage({ text: 'ユーザーIDが見つかりません。', type: 'error' });
-                return;
-            }
+            if (!userId) return;
 
             const response = await axios.get(
                 `http://localhost:5001/classes/${classId}/assignments`,
@@ -56,7 +53,7 @@ const Assignments: React.FC = () => {
             console.error('Error fetching assignments:', error);
             setMessage({ text: '課題の取得に失敗しました。', type: 'error' });
         }
-    };
+    }, [classId]);
 
     useEffect(() => {
         fetchAssignments();
