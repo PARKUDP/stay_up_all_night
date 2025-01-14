@@ -24,12 +24,10 @@ const Assignments: React.FC = () => {
     const [newDeadline, setNewDeadline] = useState<string>('');
     const [filter, setFilter] = useState<string>('すべて');
     const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
-    const [loadingStatus, setLoadingStatus] = useState<number | null>(null);
+    const [loadingStatus] = useState<number | null>(null);
     const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
     const [details, setDetails] = useState<string>('');
     const [advice, setAdvice] = useState<string>('');
-
-    const currentUserId = localStorage.getItem('user_id');
 
     useEffect(() => {
         if (message) {
@@ -60,8 +58,8 @@ const Assignments: React.FC = () => {
     }, [fetchAssignments]);
 
     const addAssignment = () => {
-        if (!newTitle.trim() || !newDeadline) {
-            setMessage({ text: 'タイトルと期限を入力してください。', type: 'error' });
+        if (!newTitle.trim() || !newDeadline || !details.trim()) {
+            setMessage({ text: 'タイトルと期限と内容を入力してください。', type: 'error' });
             return;
         }
 
@@ -70,11 +68,13 @@ const Assignments: React.FC = () => {
                 title: newTitle.trim(),
                 deadline: newDeadline,
                 class_id: classId,
+                details: details.trim(),
             })
             .then((response) => {
                 setAssignments((prev) => [...prev, response.data]);
                 setNewTitle('');
                 setNewDeadline('');
+                setDetails('');
                 setMessage({ text: '課題が追加されました！', type: 'success' });
             })
             .catch((error) => {
@@ -180,6 +180,11 @@ const Assignments: React.FC = () => {
                         type="date"
                         value={newDeadline}
                         onChange={(e) => setNewDeadline(e.target.value)}
+                    />
+                    <textarea
+                        placeholder="課題の内容"
+                        value={details}
+                        onChange={(e) => setDetails(e.target.value)}
                     />
                     <button onClick={addAssignment}>課題を追加</button>
                 </div>

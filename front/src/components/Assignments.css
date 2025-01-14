@@ -44,7 +44,8 @@ h1 {
 }
 
 .form-container input[type="text"],
-.form-container input[type="date"] {
+.form-container input[type="date"],
+.form-container textarea {
     width: calc(100% - 20px);
     padding: 10px;
     margin-bottom: 10px;
