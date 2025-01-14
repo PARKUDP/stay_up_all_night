@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -36,3 +37,12 @@ class AssignmentCompletion(db.Model):
     assignment_id = db.Column(db.Integer, db.ForeignKey('assignment.id'), nullable=False)
     user_id = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(50), nullable=False)
+
+class AssignmentDetailHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignment.id'), nullable=False)
+    details = db.Column(db.Text)
+    advice = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    assignment = db.relationship('Assignment', backref=db.backref('history', cascade="all, delete-orphan"))

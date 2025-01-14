@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
-from models import db, User, Class, Assignment, AssignmentCompletion, AssignmentStatus
+from models import db, User, Class, Assignment, AssignmentCompletion, AssignmentStatus, AssignmentDetailHistory
 from flask_migrate import Migrate
 
 app = Flask(__name__)
@@ -254,30 +254,49 @@ def get_assignment_details(assignment_id):
 @app.route('/assignments/<int:assignment_id>/details', methods=['PUT'])
 def update_assignment_details(assignment_id):
     data = request.json
-    print(f"Received data for assignment {assignment_id}: {data}")  # デバッグ用ログ
 
     assignment = Assignment.query.get(assignment_id)
     if not assignment:
-        return jsonify({'error': 'Assignment not found'}), 404
+        return jsonify({'error': '課題が見つかりません'}), 404
 
     try:
-        # 現在の値をログ出力
-        print(f"Current details: {assignment.details}")
-        print(f"Current advice: {assignment.advice}")
+        # 履歴を保存
+        history = AssignmentDetailHistory(
+            assignment_id=assignment_id,
+            details=data.get('details'),
+            advice=data.get('advice')
+        )
+        db.session.add(history)
 
+        # 現在の課題も更新
         assignment.details = data.get('details', assignment.details)
         assignment.advice = data.get('advice', assignment.advice)
 
-        # 更新後の値をログ出力
-        print(f"Updated details: {assignment.details}")
-        print(f"Updated advice: {assignment.advice}")
-
         db.session.commit()
-        return jsonify({'message': 'Details updated successfully'})
+        return jsonify({'message': '詳細が更新されました'})
     except Exception as e:
         db.session.rollback()
         print(f"Error updating assignment {assignment_id}: {str(e)}")
-        return jsonify({'error': 'Failed to update assignment'}), 500
+        return jsonify({'error': '課題の更新に失敗しました'}), 500
+
+@app.route('/assignments/<int:assignment_id>/history', methods=['GET'])
+def get_assignment_history(assignment_id):
+    try:
+        history = AssignmentDetailHistory.query.filter_by(
+            assignment_id=assignment_id
+        ).order_by(AssignmentDetailHistory.created_at.desc()).all()
+
+        history_data = [{
+            'id': h.id,
+            'details': h.details,
+            'advice': h.advice,
+            'created_at': h.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        } for h in history]
+
+        return jsonify(history_data)
+    except Exception as e:
+        print(f"Error fetching history: {str(e)}")
+        return jsonify({'error': '履歴の取得に失敗しました'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
