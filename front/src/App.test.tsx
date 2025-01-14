@@ -1,12 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
+import { act } from 'react';
 
 jest.mock('axios', () => ({
   get: jest.fn(),
 }));
 
 test('renders login page', async () => {
-  render(<App />);
+  await act(async () => {
+    render(<App />);
+  });
   const headingElement = await screen.findByRole('heading', { name: /ログイン/i });
   expect(headingElement).toBeInTheDocument();
 });
