@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Modal from 'react-modal';
 import './LoginForm.css';
 
 interface LoginFormProps {
@@ -12,8 +13,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -49,6 +50,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     navigate('/register');
   };
 
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <div className="login-container">
       <img src='/images/logo.png' alt="Logo" />
@@ -67,7 +71,29 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       />
       <button onClick={handleLogin}>ログイン</button>
       <button onClick={goToRegister}>会員登録</button>
+      <span className="usage-link" onClick={openModal}>
+        使い方を見る
+      </span>
       {message && <p style={{ color: isError ? 'red' : 'green' }}>{message}</p>}
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="仕様書"
+        className="modal-content"
+        overlayClassName="modal-overlay"
+      >
+        <div className="modal-header">
+          <h3>使い方</h3>
+          <button onClick={closeModal} className="close-button">×</button>
+        </div>
+        <iframe
+          src="/doc/Instructions.pdf" 
+          title="仕様書"
+          width="100%"
+          height="600px"
+        ></iframe>
+      </Modal>
     </div>
   );
 };

@@ -80,3 +80,74 @@
 .login-container button:last-of-type:hover {
   background-color: #27ae60;
 }
+
+/* モーダル全体の背景 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* モーダル本体 */
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 90%;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* モーダルヘッダー */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+/* 閉じるボタン */
+.close-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #333;
+}
+
+/* フェードインアニメーション */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* リンク風のスタイル */
+.usage-link {
+  color: #007bff; 
+  text-decoration: underline;
+  cursor: pointer;
+  display: inline-block;
+  margin-top: 5px;
+  margin-left: auto; 
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+.usage-link:hover {
+  color: #0056b3; 
+}

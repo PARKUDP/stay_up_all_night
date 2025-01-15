@@ -47,6 +47,9 @@ const Sidebar: React.FC = () => {
                     </div>
                     <ul className={styles.menu}>
                         <li className={styles.menuItem}>
+                            <a href="/">ホーム</a>
+                        </li>
+                        <li className={styles.menuItem}>
                             <div className={styles.dropdownHeader} onClick={toggleAssignments}>
                                 <span>授業一覧</span>
                                 <span className={`${styles.dropdownButton} ${assignmentsOpen ? styles.open : ""}`}>
