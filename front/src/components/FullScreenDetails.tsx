@@ -72,7 +72,6 @@ const FullScreenDetails: React.FC<FullScreenDetailsProps> = ({
                         <label>
                             アドバイス:
                             <textarea
-                                value={advice}
                                 onChange={(e) => setAdvice(e.target.value)}
                                 placeholder="アドバイスや注意点を記載してください。"
                             />
@@ -81,7 +80,7 @@ const FullScreenDetails: React.FC<FullScreenDetailsProps> = ({
                 </div>
                 
                 <div className="history-section">
-                    <h3>更新履歴</h3>
+                    <h3>アドバイス一覧</h3>
                     <div className="history-list">
                         {history.map(item => (
                             <div key={item.id} className="history-item">
