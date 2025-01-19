@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { Classes, Assignments, LoginForm, RegisterForm, LogoutButton } from './components';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
-
 
   const handleLogout = () => {
     setIsLoggedIn(false);
@@ -20,33 +19,31 @@ function App() {
   };
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginForm onLoginSuccess={handleLoginSuccess} />} />
-        <Route path="/register" element={<RegisterForm />} />
-        <Route path="/" element={
-          isLoggedIn ? (
-            <div>
-              <LogoutButton onLogout={handleLogout} />
-              <Classes />
-            </div>
-          ) : (
-            <Navigate to="/login" />
-          )
-        } />
-        <Route path="/assignments/:classId" element={
-          isLoggedIn ? (
-            <div>
-              <LogoutButton onLogout={handleLogout} />
-              <Assignments />
-            </div>
-          ) : (
-            <Navigate to="/login" />
-          )
-        } />
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/login" element={<LoginForm onLoginSuccess={handleLoginSuccess} />} />
+      <Route path="/register" element={<RegisterForm />} />
+      <Route path="/" element={
+        isLoggedIn ? (
+          <div>
+            <LogoutButton onLogout={handleLogout} />
+            <Classes />
+          </div>
+        ) : (
+          <Navigate to="/login" />
+        )
+      } />
+      <Route path="/assignments/:classId" element={
+        isLoggedIn ? (
+          <div>
+            <LogoutButton onLogout={handleLogout} />
+            <Assignments />
+          </div>
+        ) : (
+          <Navigate to="/login" />
+        )
+      } />
+      <Route path="*" element={<Navigate to="/login" />} />
+    </Routes>
   );
 }
 

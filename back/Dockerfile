@@ -9,4 +9,4 @@ COPY . .
 
 CMD ["flask", "run", "--host=0.0.0.0", "--port=5001", "--reload"]
 
-EXPOSE 5000
+EXPOSE 5001

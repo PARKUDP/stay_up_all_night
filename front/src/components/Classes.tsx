@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import LogoImage from '../img/logo.png';
 import './Classes.css';
 
 interface Class {
@@ -16,7 +15,7 @@ const Classes: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get('http://127.0.0.1:5000/classes')
+      .get('http://localhost:5001/classes')
       .then((response) => {
         setClasses(response.data);
         setError(null);
@@ -35,7 +34,7 @@ const Classes: React.FC = () => {
     if (!className) return;
 
     axios
-      .post('http://127.0.0.1:5000/classes', { name: className })
+      .post('http://localhost:5001/classes', { name: className })
       .then((response) => {
         setClasses([...classes, response.data]);
         setError(null);
@@ -49,7 +48,7 @@ const Classes: React.FC = () => {
     if (!window.confirm('この授業を削除しますか？')) return;
 
     axios
-      .delete(`http://127.0.0.1:5000/classes/${classId}`)
+      .delete(`http://localhost:5001/classes/${classId}`)
       .then(() => {
         setClasses(classes.filter((c) => c.id !== classId));
         setError(null);
@@ -61,7 +60,7 @@ const Classes: React.FC = () => {
 
   return (
     <div className="container">
-      <img src={LogoImage} alt="Logo" className="logo" />
+      <img src='/images/logo.png' alt="Logo" className="logo" />
       <h2>授業一覧</h2>
       {error && <p className="error-message">{error}</p>}
       <button onClick={addClass}>授業を追加する</button>

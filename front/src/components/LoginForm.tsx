@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import LogoImage from '../img/logo.png';
+import Modal from 'react-modal';
 import './LoginForm.css';
 
 interface LoginFormProps {
@@ -13,8 +13,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -23,11 +23,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       return;
     }
     try {
-      await axios.post('http://127.0.0.1:5000/login', { username, password });
+      await axios.post('http://localhost:5001/login', { username, password });
       setMessage('ログイン成功！');
       setIsError(false);
 
-      const response = await axios.post('http://127.0.0.1:5000/login', { username, password });
+      const response = await axios.post('http://localhost:5001/login', { username, password });
 
       // サーバーから返された `user_id` を保存
       localStorage.setItem('user_id', response.data.user_id);
@@ -50,9 +50,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     navigate('/register');
   };
 
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <div className="login-container">
-      <img src={LogoImage} alt="Logo" />
+      <img src='/images/logo.png' alt="Logo" />
       <h2>ログイン</h2>
       <input
         type="text"
@@ -68,7 +71,29 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       />
       <button onClick={handleLogin}>ログイン</button>
       <button onClick={goToRegister}>会員登録</button>
+      <span className="usage-link" onClick={openModal}>
+        使い方を見る
+      </span>
       {message && <p style={{ color: isError ? 'red' : 'green' }}>{message}</p>}
+
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={closeModal}
+        contentLabel="仕様書"
+        className="modal-content"
+        overlayClassName="modal-overlay"
+      >
+        <div className="modal-header">
+          <h3>使い方</h3>
+          <button onClick={closeModal} className="close-button">×</button>
+        </div>
+        <iframe
+          src="/doc/Instructions.pdf" 
+          title="仕様書"
+          width="100%"
+          height="600px"
+        ></iframe>
+      </Modal>
     </div>
   );
 };
